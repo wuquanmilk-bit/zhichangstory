@@ -2,8 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   User, Shield, Search, LayoutGrid, Wrench, 
-  Sparkles, Trash2, Terminal, FileText, BookOpen, MessageCircle 
+  Sparkles, Trash2, Terminal, FileText, BookOpen, MessageCircle,
+  Zap, Crown, Award, BadgeCheck, CheckCircle2, UserCog
 } from 'lucide-react';
+
+// 定义用户资料类型接口，统一字段命名
+interface Profile {
+  id: string;
+  username: string;
+  email: string;
+  nickname?: string;
+  coins: number;
+  role: string;
+  exp: number;
+  user_level: number;
+  is_banned: boolean;
+  is_muted: boolean;
+  ban_reason?: string;
+  mute_reason?: string;
+  is_verified: boolean; // 实名认证
+  is_blue_v: boolean; // 蓝V认证
+  is_contract_author: boolean; // 签约作家
+  is_vip: boolean; // VIP会员
+  is_author: boolean; // 认证作者
+  is_moderator: boolean; // 社区版主
+  created_at: string;
+}
 
 // ==========================================
 // 1. 初始化 Supabase
@@ -21,6 +45,60 @@ const TABLE = {
   NOVELS: 'novels',          // 对应 novels_rows.csv
 };
 
+// 标签渲染组件
+const UserBadges = ({ profile }: { profile: Profile | null }) => {
+  if (!profile) return null;
+  
+  return (
+    <div className="flex flex-wrap gap-1.5 ml-2">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-full border border-gray-200">
+        基础会员
+      </span>
+      
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-100">
+        <Zap className="h-3 w-3 fill-current" /> 
+        LV.{profile.user_level || Math.floor((profile.exp || 0) / 1000) + 1}
+      </span>
+
+      {profile.is_vip && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-600 text-[10px] font-bold rounded-full border border-amber-200">
+          <Crown className="h-3 w-3 fill-current" /> VIP会员
+        </span>
+      )}
+      
+      {profile.is_contract_author && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-orange-100 to-red-100 text-orange-600 text-[10px] font-bold rounded-full border border-orange-200">
+          <Award className="h-3 w-3" /> 签约作家
+        </span>
+      )}
+      
+      {profile.is_blue_v && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-600 text-[10px] font-bold rounded-full border border-blue-200">
+          <BadgeCheck className="h-3 w-3" /> 蓝V认证
+        </span>
+      )}
+      
+      {profile.is_verified && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 text-[10px] font-bold rounded-full border border-purple-200">
+          <CheckCircle2 className="h-3 w-3" /> 实名认证
+        </span>
+      )}
+      
+      {profile.is_author && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-600 text-[10px] font-bold rounded-full border border-green-200">
+          <UserCog className="h-3 w-3" /> 认证作者
+        </span>
+      )}
+      
+      {profile.is_moderator && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-indigo-100 to-violet-100 text-indigo-600 text-[10px] font-bold rounded-full border border-indigo-200">
+          <Shield className="h-3 w-3" /> 社区版主
+        </span>
+      )}
+    </div>
+  );
+};
+
 const SecretManager = () => {
   // ======================================
   // 状态管理
@@ -29,14 +107,25 @@ const SecretManager = () => {
   const [loading, setLoading] = useState(false);
 
   // --- 用户管理 ---
-  const [activeTab, setActiveTab] = useState<'coins' | 'punish' | 'history' | 'questions' | 'novels'>('coins'); 
-  const [users, setUsers] = useState<any[]>([]);
-  const [targetUser, setTargetUser] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'coins' | 'punish' | 'history' | 'questions' | 'novels' | 'exp'>('coins'); 
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [targetUser, setTargetUser] = useState<Profile | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [customCoinAmount, setCustomCoinAmount] = useState<number | ''>('');
   const [punishReason, setPunishReason] = useState('');
   const [userRole, setUserRole] = useState('');
+  
+  // --- 身份与等级系统 ---
+  const [userExp, setUserExp] = useState<number>(0);
+  const [userLevel, setUserLevel] = useState<number>(1);
+  const [isBlueV, setIsBlueV] = useState<boolean>(false); // 蓝V认证
+  const [isContractAuthor, setIsContractAuthor] = useState<boolean>(false); // 签约作家
+  const [isVIP, setIsVIP] = useState<boolean>(false); // VIP会员
+  const [isVerified, setIsVerified] = useState<boolean>(false); // 实名认证
+  const [isAuthor, setIsAuthor] = useState<boolean>(false); // 认证作者
+  const [isModerator, setIsModerator] = useState<boolean>(false); // 社区版主
+  const [customExpAmount, setCustomExpAmount] = useState<number | ''>('');
   
   // --- 历史记录和用户内容 ---
   const [coinLogs, setCoinLogs] = useState<any[]>([]);
@@ -84,7 +173,7 @@ const SecretManager = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(data as Profile[] || []);
     } catch (error: any) {
       console.error('加载用户失败：', error);
       alert(`加载失败: ${error.message}`);
@@ -93,10 +182,21 @@ const SecretManager = () => {
     }
   };
 
-  const handleSelectUser = async (user: any) => {
+  const handleSelectUser = async (user: Profile) => {
     setTargetUser(user);
     setUserRole(user.role || 'member');
     setPunishReason(user.ban_reason || user.mute_reason || '');
+    
+    // 加载身份与等级相关数据
+    setUserExp(user.exp || 0);
+    setUserLevel(user.user_level || 1);
+    setIsBlueV(user.is_blue_v || false);
+    setIsContractAuthor(user.is_contract_author || false);
+    setIsVIP(user.is_vip || false);
+    setIsVerified(user.is_verified || false);
+    setIsAuthor(user.is_author || false);
+    setIsModerator(user.is_moderator || false);
+    
     loadCoinLogs(user.id);
     loadUserContent(user.id); // 加载用户发布的内容
   };
@@ -206,6 +306,102 @@ const SecretManager = () => {
 
       setTargetUser({ ...targetUser, ...updateData });
       alert('操作成功');
+    } catch (e: any) { alert(e.message); } finally { setLoading(false); }
+  };
+
+  // ======================================
+  // 核心逻辑 A2：经验与身份管理
+  // ======================================
+  
+  // 调整经验值
+  const handleExpAdjust = async (type: 'add' | 'reduce', amount?: number) => {
+    if (!targetUser) return alert('请先选择用户');
+    let adjustAmount = amount || (customExpAmount as number);
+    if (!adjustAmount || adjustAmount <= 0) return alert('经验值无效');
+
+    setLoading(true);
+    try {
+      // 1. 计算新经验值
+      const currentExp = targetUser.exp || 0;
+      const newExp = type === 'add' ? currentExp + adjustAmount : Math.max(0, currentExp - adjustAmount);
+      
+      // 2. 计算等级 (每1000经验升一级，与UserBadges保持一致)
+      const newLevel = Math.floor(newExp / 1000) + 1;
+      
+      // 3. 更新用户表
+      const { error: updateError } = await supabase
+        .from(TABLE.USERS)
+        .update({ exp: newExp, user_level: newLevel })
+        .eq('id', targetUser.id);
+      
+      if (updateError) throw updateError;
+
+      // 更新本地状态
+      setTargetUser({ ...targetUser, exp: newExp, user_level: newLevel });
+      setUserExp(newExp);
+      setUserLevel(newLevel);
+      alert(`成功！当前经验: ${newExp}, 当前等级: ${newLevel}`);
+    } catch (e: any) { alert('操作失败: ' + e.message); } finally { setLoading(false); }
+  };
+
+  // 身份状态切换
+  const handleToggleIdentity = async (type: 'blueV' | 'contract' | 'vip' | 'verified' | 'author' | 'moderator') => {
+    if (!targetUser) return;
+    setLoading(true);
+    try {
+      // 根据类型更新对应字段
+      let updateData: any = {};
+      let statusText = '';
+      
+      switch(type) {
+        case 'blueV':
+          updateData = { is_blue_v: !isBlueV };
+          statusText = isBlueV ? '已取消蓝V认证' : '已授予蓝V认证';
+          break;
+        case 'contract':
+          updateData = { is_contract_author: !isContractAuthor };
+          statusText = isContractAuthor ? '已取消签约作家身份' : '已授予签约作家身份';
+          break;
+        case 'vip':
+          updateData = { is_vip: !isVIP };
+          statusText = isVIP ? '已取消VIP会员' : '已授予VIP会员';
+          break;
+        case 'verified':
+          updateData = { is_verified: !isVerified };
+          statusText = isVerified ? '已取消实名认证' : '已授予实名认证';
+          break;
+        case 'author':
+          updateData = { is_author: !isAuthor };
+          statusText = isAuthor ? '已取消认证作者' : '已授予认证作者';
+          break;
+        case 'moderator':
+          updateData = { is_moderator: !isModerator };
+          statusText = isModerator ? '已取消社区版主' : '已授予社区版主';
+          break;
+      }
+
+      const { error } = await supabase
+        .from(TABLE.USERS)
+        .update(updateData)
+        .eq('id', targetUser.id);
+        
+      if (error) throw error;
+
+      // 更新本地状态
+      const updatedUser = { ...targetUser, ...updateData };
+      setTargetUser(updatedUser);
+      
+      // 更新对应的状态变量
+      switch(type) {
+        case 'blueV': setIsBlueV(!isBlueV); break;
+        case 'contract': setIsContractAuthor(!isContractAuthor); break;
+        case 'vip': setIsVIP(!isVIP); break;
+        case 'verified': setIsVerified(!isVerified); break;
+        case 'author': setIsAuthor(!isAuthor); break;
+        case 'moderator': setIsModerator(!isModerator); break;
+      }
+      
+      alert(`操作成功：${statusText}`);
     } catch (e: any) { alert(e.message); } finally { setLoading(false); }
   };
 
@@ -436,6 +632,7 @@ const SecretManager = () => {
                     <span>{u.nickname || '无昵称'}</span>
                     <span className={u.is_banned ? 'text-red-500' : 'text-green-500'}>{u.is_banned ? '已封禁' : '正常'}</span>
                   </div>
+                  <UserBadges profile={u} />
                 </div>
               ))}
             </div>
@@ -451,25 +648,28 @@ const SecretManager = () => {
                   <div>
                     <h2 className="text-2xl font-bold">{targetUser.username}</h2>
                     <p className="text-gray-500 text-sm">{targetUser.email}</p>
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex items-center flex-wrap">
                       <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">💰 金币: {targetUser.coins}</span>
                       <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Role: {targetUser.role}</span>
+                      <UserBadges profile={targetUser} />
                     </div>
                   </div>
                   <div className="text-right text-xs text-gray-400">ID: {targetUser.id}</div>
                 </div>
 
                 <div className="flex gap-4 border-b">
-                  {['coins', 'punish', 'history', 'questions', 'novels'].map(tab => (
+                  {['coins', 'punish', 'history', 'questions', 'novels', 'exp'].map(tab => (
                     <button 
                       key={tab} 
-                      onClick={() => setActiveTab(tab as 'coins' | 'punish' | 'history' | 'questions' | 'novels')} 
+                      onClick={() => setActiveTab(tab as 'coins' | 'punish' | 'history' | 'questions' | 'novels' | 'exp')} 
                       className={`pb-2 text-sm font-bold ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                     >
                       {tab === 'coins' ? '金币管理' : 
                        tab === 'punish' ? '账号管控' : 
                        tab === 'history' ? '流水记录' :
-                       tab === 'questions' ? '发布的问题' : '发布的小说'}
+                       tab === 'questions' ? '发布的问题' : 
+                       tab === 'novels' ? '发布的小说' :
+                       tab === 'exp' ? '经验与身份管理' : ''}
                     </button>
                   ))}
                 </div>
@@ -596,6 +796,77 @@ const SecretManager = () => {
                         </tbody>
                       </table>
                     )}
+                  </div>
+                )}
+
+                {/* 经验与身份管理标签页 */}
+                {activeTab === 'exp' && (
+                  <div className="space-y-6 pt-4">
+                    {/* 经验值调整区域 */}
+                    <div className="border p-4 rounded-lg">
+                      <h3 className="text-sm font-bold mb-3">经验值管理</h3>
+                      <div className="flex gap-2 flex-wrap">
+                        {[10, 50, 100].map(amt => (
+                          <div key={amt} className="flex gap-1">
+                            <button onClick={() => handleExpAdjust('add', amt)} className="px-3 py-1 bg-green-50 text-green-600 border border-green-200 rounded text-sm">+ {amt} EXP</button>
+                            <button onClick={() => handleExpAdjust('reduce', amt)} className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 rounded text-sm">- {amt} EXP</button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <input 
+                          type="number" 
+                          placeholder="自定义经验值" 
+                          value={customExpAmount} 
+                          onChange={e => setCustomExpAmount(Number(e.target.value))} 
+                          className="border p-2 rounded-lg" 
+                        />
+                        <button onClick={() => handleExpAdjust('add')} className="bg-blue-600 text-white px-4 py-2 rounded-lg">执行增加</button>
+                      </div>
+                    </div>
+
+                    {/* 身份管理区域 */}
+                    <div className="border p-4 rounded-lg">
+                      <h3 className="text-sm font-bold mb-3">身份认证管理</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <button 
+                          onClick={() => handleToggleIdentity('blueV')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isBlueV ? 'bg-gray-200 text-gray-600' : 'bg-indigo-600 text-white'}`}
+                        >
+                          {isBlueV ? '取消蓝V认证' : '授予蓝V认证'}
+                        </button>
+                        <button 
+                          onClick={() => handleToggleIdentity('contract')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isContractAuthor ? 'bg-gray-200 text-gray-600' : 'bg-purple-600 text-white'}`}
+                        >
+                          {isContractAuthor ? '取消签约作家' : '授予签约作家'}
+                        </button>
+                        <button 
+                          onClick={() => handleToggleIdentity('vip')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isVIP ? 'bg-gray-200 text-gray-600' : 'bg-amber-600 text-white'}`}
+                        >
+                          {isVIP ? '取消VIP会员' : '授予VIP会员'}
+                        </button>
+                        <button 
+                          onClick={() => handleToggleIdentity('verified')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isVerified ? 'bg-gray-200 text-gray-600' : 'bg-pink-600 text-white'}`}
+                        >
+                          {isVerified ? '取消实名认证' : '授予实名认证'}
+                        </button>
+                        <button 
+                          onClick={() => handleToggleIdentity('author')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isAuthor ? 'bg-gray-200 text-gray-600' : 'bg-green-600 text-white'}`}
+                        >
+                          {isAuthor ? '取消认证作者' : '授予认证作者'}
+                        </button>
+                        <button 
+                          onClick={() => handleToggleIdentity('moderator')}
+                          className={`px-4 py-2 rounded-lg text-sm ${isModerator ? 'bg-gray-200 text-gray-600' : 'bg-indigo-600 text-white'}`}
+                        >
+                          {isModerator ? '取消社区版主' : '授予社区版主'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
