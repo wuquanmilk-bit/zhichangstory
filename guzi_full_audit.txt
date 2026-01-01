@@ -1,0 +1,174 @@
+========= 职场story：全量项目审计报告 =========
+生成时间: 2025-12-19 19:56:49
+
+【1. 技术栈概览】
+项目名称: vite-react-template
+核心框架: 19.0.0 | Vite: ^6.0.0
+UI库/工具: Tailwind: N/A | Lucide: ^0.561.0
+后端驱动: Supabase: ^2.88.0
+--------------------------------------------------
+
+【2. 完整目录树】
+📁 ./
+  📄 .env
+  📄 .gitignore
+  📄 cypress.config.ts
+  📄 eslint.config.js
+  📄 guzi_full_audit.txt
+  📄 index.html
+  📄 package-lock.json
+  📄 package.json
+  📄 postcss.config.js
+  📄 README.md
+  📄 tailwind.config.js
+  📄 tsconfig.json
+  📄 vite.config.ts
+  📄 worker-configuration.d.ts
+  📄 wrangler.json
+  📄 新建 Python File.py
+  📁 cypress/
+    📁 e2e/
+      📄 spec.cy.ts
+    📁 fixtures/
+      📄 example.json
+    📁 screenshots/
+    📁 support/
+      📄 commands.ts
+      📄 e2e.ts
+  📁 database/
+    📄 init.sql
+    📄 README.md
+  📁 public/
+    📄 vite.svg
+  📁 scripts/
+    📁 esm/
+      📄 simple-mock-data.mjs
+  📁 src/
+    📄 supabaseClient.ts
+    📁 components/
+      📄 ContentCard.tsx
+      📄 Navbar.tsx
+      📄 UserMenu.tsx
+    📁 contexts/
+      📄 AuthContext.tsx
+      📄 UserMenu.tsx
+    📁 lib/
+      📄 supabase.ts
+    📁 mockData/
+      📄 answers.json
+      📄 articles.json
+      📄 categories.json
+      📄 index.ts
+      📄 novels.json
+      📄 questions.json
+      📄 tags.json
+      📄 users.json
+    📁 react-app/
+      📄 App.css
+      📄 App.tsx
+      📄 index.css
+      📄 main.tsx
+      📄 TestAuth.tsx
+      📄 vite-env.d.ts
+      📁 assets/
+        📄 Cloudflare_Logo.svg
+        📄 hono.svg
+        📄 react.svg
+      📁 components/
+        📄 Navbar.tsx
+        📄 UserMenu.tsx
+        📁 mock/
+          📄 ContentCard.tsx
+      📁 hooks/
+        📄 useMockData.ts
+      📁 pages/
+        📄 AskPage.tsx
+        📄 CategoryPage.tsx
+        📄 CommunityPage.tsx
+        📄 EditPostPage.tsx
+        📄 HomePage.tsx
+        📄 LoginPage.tsx
+        📄 MyPostsPage.tsx
+        📄 NotFoundPage.tsx
+        📄 NovelDetailPage.tsx
+        📄 NovelsPage.tsx
+        📄 QuestionDetailPage.tsx
+        📄 QuestionsPage.tsx
+        📄 RankingsPage.tsx
+        📄 RegisterPage.tsx
+        📄 SearchPage.tsx
+        📄 SettingsPage.tsx
+        📄 UserDetailPage.tsx
+        📄 UsersPage.tsx
+        📄 WritePage.tsx
+    📁 types/
+      📄 mock.types.ts
+    📁 worker/
+      📄 env.d.ts
+      📄 index.jsx
+      📄 index.ts
+--------------------------------------------------
+
+【3. 核心代码审计】
+文件路径                                               | 大小(KB)     | 行数       | 状态
+--------------------------------------------------------------------------------
+cypress.config.ts                                  | 0.17       | 9        | ❄️ 纯UI/模拟
+index.html                                         | 0.37       | 14       | ❄️ 纯UI/模拟
+package-lock.json                                  | 371.17     | 9251     | 🔥 真数据逻辑
+package.json                                       | 2.12       | 63       | 🔥 真数据逻辑
+tsconfig.json                                      | 0.43       | 18       | ❄️ 纯UI/模拟
+vite.config.ts                                     | 0.16       | 7        | ❄️ 纯UI/模拟
+worker-configuration.d.ts                          | 281.38     | 7331     | ❄️ 纯UI/模拟
+wrangler.json                                      | 0.38       | 15       | ❄️ 纯UI/模拟
+cypress\e2e\spec.cy.ts                             | 1.35       | 20       | ❄️ 纯UI/模拟
+cypress\fixtures\example.json                      | 0.15       | 5        | ❄️ 纯UI/模拟
+cypress\support\commands.ts                        | 1.28       | 37       | ❄️ 纯UI/模拟
+cypress\support\e2e.ts                             | 0.58       | 17       | ❄️ 纯UI/模拟
+database\init.sql                                  | 3.55       | 117      | 🔥 真数据逻辑
+src\supabaseClient.ts                              | 0.24       | 6        | 🔥 真数据逻辑
+src\components\ContentCard.tsx                     | 1.87       | 47       | ❄️ 纯UI/模拟 | 🚀 页面
+src\components\Navbar.tsx                          | 1.82       | 30       | ❄️ 纯UI/模拟 | 🚀 页面
+src\components\UserMenu.tsx                        | 3.33       | 80       | ❄️ 纯UI/模拟 | 🚀 页面
+src\contexts\AuthContext.tsx                       | 4.11       | 157      | 🔥 真数据逻辑
+src\contexts\UserMenu.tsx                          | 4.27       | 104      | ❄️ 纯UI/模拟 | 🚀 页面
+src\lib\supabase.ts                                | 0.73       | 30       | 🔥 真数据逻辑
+src\mockData\answers.json                          | 7.94       | 212      | ❄️ 纯UI/模拟
+src\mockData\articles.json                         | 7.99       | 195      | ❄️ 纯UI/模拟
+src\mockData\categories.json                       | 1.61       | 92       | ❄️ 纯UI/模拟
+src\mockData\index.ts                              | 44.73      | 1565     | ❄️ 纯UI/模拟
+src\mockData\novels.json                           | 6.29       | 218      | ❄️ 纯UI/模拟
+src\mockData\questions.json                        | 12.35      | 454      | ❄️ 纯UI/模拟
+src\mockData\tags.json                             | 1.36       | 86       | ❄️ 纯UI/模拟
+src\mockData\users.json                            | 6.93       | 304      | ❄️ 纯UI/模拟
+src\react-app\App.css                              | 0.66       | 45       | ❄️ 纯UI/模拟
+src\react-app\App.tsx                              | 3.74       | 80       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\index.css                            | 1.42       | 56       | ❄️ 纯UI/模拟
+src\react-app\main.tsx                             | 0.25       | 11       | ❄️ 纯UI/模拟
+src\react-app\TestAuth.tsx                         | 0.58       | 26       | ❄️ 纯UI/模拟
+src\react-app\vite-env.d.ts                        | 0.04       | 1        | ❄️ 纯UI/模拟
+src\react-app\components\Navbar.tsx                | 2.85       | 83       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\components\UserMenu.tsx              | 3.33       | 80       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\components\mock\ContentCard.tsx      | 10.16      | 261      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\hooks\useMockData.ts                 | 5.96       | 219      | ❄️ 纯UI/模拟
+src\react-app\pages\AskPage.tsx                    | 7.76       | 195      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\CategoryPage.tsx               | 0.42       | 12       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\CommunityPage.tsx              | 0.92       | 24       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\EditPostPage.tsx               | 0.15       | 4        | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\HomePage.tsx                   | 8.32       | 226      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\LoginPage.tsx                  | 10.83      | 250      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\MyPostsPage.tsx                | 1.09       | 33       | 🔥 真数据逻辑 | 🚀 页面
+src\react-app\pages\NotFoundPage.tsx               | 0.5        | 12       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\NovelDetailPage.tsx            | 0.88       | 27       | 🔥 真数据逻辑 | 🚀 页面
+src\react-app\pages\NovelsPage.tsx                 | 8.45       | 201      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\QuestionDetailPage.tsx         | 3.08       | 85       | 🔥 真数据逻辑 | 🚀 页面
+src\react-app\pages\QuestionsPage.tsx              | 8.81       | 223      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\RankingsPage.tsx               | 1.16       | 27       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\RegisterPage.tsx               | 4.45       | 112      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\SearchPage.tsx                 | 0.43       | 13       | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\SettingsPage.tsx               | 0.63       | 15       | 🔥 真数据逻辑 | 🚀 页面
+src\react-app\pages\UserDetailPage.tsx             | 1.08       | 31       | 🔥 真数据逻辑 | 🚀 页面
+src\react-app\pages\UsersPage.tsx                  | 7.8        | 194      | ❄️ 纯UI/模拟 | 🚀 页面
+src\react-app\pages\WritePage.tsx                  | 9.36       | 207      | ❄️ 纯UI/模拟 | 🚀 页面
+src\types\mock.types.ts                            | 2.27       | 132      | ❄️ 纯UI/模拟
+src\worker\env.d.ts                                | 0.09       | 4        | ❄️ 纯UI/模拟
+src\worker\index.ts                                | 0.15       | 6        | ❄️ 纯UI/模拟

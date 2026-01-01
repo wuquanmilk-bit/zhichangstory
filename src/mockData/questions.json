@@ -1,0 +1,27 @@
+[
+  {
+    "id": "guzi_active_001",
+    "title": "如何评价职场story的沉浸式阅读体验？",
+    "content": "我最近深度体验了职场story，有几点想跟大家讨论：\n1. 这种磨砂玻璃的 UI 确实很耐看。\n2. 字体间距呼吸感很足。\n3. 你们觉得目前的加载速度还有提升空间吗？",
+    "excerpt": "关于职场story美学与交互的深度测评...",
+    "authorId": "user_legend_001",
+    "author": {
+      "id": "user_legend_001",
+      "displayName": "断章残雪",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=legend"
+    },
+    "category": "官方公告",
+    "tags": [
+      "体验",
+      "职场story",
+      "UI"
+    ],
+    "stats": {
+      "views": 28500,
+      "answers": 2,
+      "likes": 1024
+    },
+    "createdAt": "2025-12-19T23:31:51.365257",
+    "isMock": true
+  }
+]

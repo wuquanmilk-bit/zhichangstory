@@ -1,0 +1,304 @@
+[
+  {
+    "id": "user_1",
+    "username": "wang_teacher",
+    "displayName": "王老师",
+    "email": "wang@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=王老师",
+    "bio": "10年前端开发经验，React/Vue专家，喜欢分享技术心得",
+    "role": "creator",
+    "stats": {
+      "followers": 2500,
+      "following": 120,
+      "posts": 24,
+      "questions": 8,
+      "answers": 45,
+      "likes": 3200,
+      "views": 15000
+    },
+    "tags": [
+      "前端开发",
+      "React",
+      "TypeScript",
+      "Vue"
+    ],
+    "badges": [
+      "技术专家",
+      "优质创作者"
+    ],
+    "joinDate": "2023-01-15T10:30:00Z",
+    "isVerified": true,
+    "location": "北京",
+    "website": "https://wang.dev",
+    "isMock": true
+  },
+  {
+    "id": "user_2",
+    "username": "chen_writer",
+    "displayName": "小陈作家",
+    "email": "chen@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家",
+    "bio": "网络小说作家，擅长都市异能、穿越题材，已创作多部热门作品",
+    "role": "creator",
+    "stats": {
+      "followers": 1800,
+      "following": 85,
+      "posts": 12,
+      "questions": 3,
+      "answers": 18,
+      "likes": 4500,
+      "views": 28000
+    },
+    "tags": [
+      "小说创作",
+      "都市",
+      "穿越",
+      "玄幻"
+    ],
+    "badges": [
+      "签约作者",
+      "热门作者"
+    ],
+    "joinDate": "2023-03-20T14:20:00Z",
+    "isVerified": true,
+    "location": "上海",
+    "isMock": true
+  },
+  {
+    "id": "user_3",
+    "username": "knowledge_base",
+    "displayName": "知识小百科",
+    "email": "knowledge@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=知识小百科",
+    "bio": "知识分享博主，专注于有趣的知识和实用技巧",
+    "role": "creator",
+    "stats": {
+      "followers": 3200,
+      "following": 95,
+      "posts": 18,
+      "questions": 6,
+      "answers": 32,
+      "likes": 2800,
+      "views": 22000
+    },
+    "tags": [
+      "知识分享",
+      "学习",
+      "技巧",
+      "效率"
+    ],
+    "badges": [
+      "知识达人",
+      "热门答主"
+    ],
+    "joinDate": "2023-05-10T09:30:00Z",
+    "isVerified": true,
+    "location": "杭州",
+    "isMock": true
+  },
+  {
+    "id": "user_4",
+    "username": "zhang_professor",
+    "displayName": "张教授",
+    "email": "zhang@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=张教授",
+    "bio": "大学计算机教授，研究方向：人工智能、机器学习",
+    "role": "expert",
+    "stats": {
+      "followers": 1500,
+      "following": 60,
+      "posts": 8,
+      "questions": 2,
+      "answers": 15,
+      "likes": 1200,
+      "views": 9500
+    },
+    "tags": [
+      "人工智能",
+      "机器学习",
+      "深度学习",
+      "算法"
+    ],
+    "badges": [
+      "认证专家",
+      "技术专家"
+    ],
+    "joinDate": "2023-07-12T11:45:00Z",
+    "isVerified": true,
+    "location": "南京",
+    "website": "https://zhang.pro",
+    "isMock": true
+  },
+  {
+    "id": "user_5",
+    "username": "admin_user",
+    "displayName": "管理员",
+    "email": "admin@storyzhihu.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=管理员",
+    "bio": "平台管理员，维护社区秩序，服务所有用户",
+    "role": "admin",
+    "stats": {
+      "followers": 500,
+      "following": 200,
+      "posts": 5,
+      "questions": 0,
+      "answers": 10,
+      "likes": 800,
+      "views": 5000
+    },
+    "tags": [
+      "社区管理",
+      "用户服务"
+    ],
+    "badges": [
+      "管理员",
+      "社区贡献者"
+    ],
+    "joinDate": "2022-12-01T08:00:00Z",
+    "isVerified": true,
+    "location": "深圳",
+    "isMock": true
+  },
+  {
+    "id": "user_6",
+    "username": "student_li",
+    "displayName": "李同学",
+    "email": "li@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=李同学",
+    "bio": "计算机专业学生，热爱编程和学习",
+    "role": "user",
+    "stats": {
+      "followers": 120,
+      "following": 45,
+      "posts": 5,
+      "questions": 12,
+      "answers": 8,
+      "likes": 320,
+      "views": 1800
+    },
+    "tags": [
+      "编程",
+      "学习",
+      "学生"
+    ],
+    "badges": [
+      "活跃用户"
+    ],
+    "joinDate": "2024-01-10T09:15:00Z",
+    "isVerified": false,
+    "location": "杭州",
+    "isMock": true
+  },
+  {
+    "id": "user_7",
+    "username": "xiaowang_work",
+    "displayName": "上班族小王",
+    "email": "xiaowang@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小王",
+    "bio": "产品经理，爱读书，喜欢分享职场经验",
+    "role": "user",
+    "stats": {
+      "followers": 85,
+      "following": 60,
+      "posts": 3,
+      "questions": 5,
+      "answers": 12,
+      "likes": 150,
+      "views": 1200
+    },
+    "tags": [
+      "职场",
+      "产品经理",
+      "读书"
+    ],
+    "badges": [],
+    "joinDate": "2024-01-05T14:20:00Z",
+    "isVerified": false,
+    "location": "广州",
+    "isMock": true
+  },
+  {
+    "id": "user_8",
+    "username": "lin_mother",
+    "displayName": "宝妈琳达",
+    "email": "linda@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=琳达",
+    "bio": "全职妈妈，分享育儿经验和生活",
+    "role": "user",
+    "stats": {
+      "followers": 65,
+      "following": 30,
+      "posts": 2,
+      "questions": 3,
+      "answers": 5,
+      "likes": 90,
+      "views": 800
+    },
+    "tags": [
+      "育儿",
+      "生活",
+      "美食"
+    ],
+    "badges": [],
+    "joinDate": "2024-01-08T10:30:00Z",
+    "isVerified": false,
+    "location": "成都",
+    "isMock": true
+  },
+  {
+    "id": "user_9",
+    "username": "fresh_graduate",
+    "displayName": "应届生小李",
+    "email": "fresh@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小李",
+    "bio": "应届毕业生，正在找工作，分享求职经验",
+    "role": "user",
+    "stats": {
+      "followers": 45,
+      "following": 80,
+      "posts": 1,
+      "questions": 8,
+      "answers": 3,
+      "likes": 60,
+      "views": 600
+    },
+    "tags": [
+      "求职",
+      "应届生",
+      "面试"
+    ],
+    "badges": [],
+    "joinDate": "2024-01-12T13:45:00Z",
+    "isVerified": false,
+    "location": "武汉",
+    "isMock": true
+  },
+  {
+    "id": "user_10",
+    "username": "tech_enthusiast",
+    "displayName": "技术爱好者",
+    "email": "tech@example.com",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=技术",
+    "bio": "技术爱好者，关注前沿科技动态",
+    "role": "user",
+    "stats": {
+      "followers": 180,
+      "following": 120,
+      "posts": 4,
+      "questions": 6,
+      "answers": 10,
+      "likes": 240,
+      "views": 1500
+    },
+    "tags": [
+      "科技",
+      "创新",
+      "编程"
+    ],
+    "badges": [],
+    "joinDate": "2023-11-20T16:10:00Z",
+    "isVerified": false,
+    "location": "西安",
+    "isMock": true
+  }
+]

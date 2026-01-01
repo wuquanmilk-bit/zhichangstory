@@ -1,0 +1,92 @@
+[
+  {
+    "id": "tech",
+    "name": "技术",
+    "slug": "tech",
+    "icon": "💻",
+    "color": "#3b82f6",
+    "count": 45,
+    "isPopular": true
+  },
+  {
+    "id": "programming",
+    "name": "编程",
+    "slug": "programming",
+    "icon": "👨‍💻",
+    "color": "#8b5cf6",
+    "count": 38,
+    "isPopular": true
+  },
+  {
+    "id": "frontend",
+    "name": "前端",
+    "slug": "frontend",
+    "icon": "🎨",
+    "color": "#10b981",
+    "count": 27,
+    "isPopular": true
+  },
+  {
+    "id": "ai",
+    "name": "人工智能",
+    "slug": "ai",
+    "icon": "🤖",
+    "color": "#ef4444",
+    "count": 19,
+    "isPopular": true
+  },
+  {
+    "id": "learning",
+    "name": "学习",
+    "slug": "learning",
+    "icon": "📚",
+    "color": "#f59e0b",
+    "count": 32,
+    "isPopular": true
+  },
+  {
+    "id": "productivity",
+    "name": "效率",
+    "slug": "productivity",
+    "icon": "⚡",
+    "color": "#06b6d4",
+    "count": 24,
+    "isPopular": false
+  },
+  {
+    "id": "career",
+    "name": "职场",
+    "slug": "career",
+    "icon": "💼",
+    "color": "#8b5cf6",
+    "count": 18,
+    "isPopular": false
+  },
+  {
+    "id": "novel_urban",
+    "name": "都市小说",
+    "slug": "novel-urban",
+    "icon": "🏙️",
+    "color": "#ec4899",
+    "count": 15,
+    "isPopular": true
+  },
+  {
+    "id": "novel_fantasy",
+    "name": "玄幻小说",
+    "slug": "novel-fantasy",
+    "icon": "🐉",
+    "color": "#f97316",
+    "count": 12,
+    "isPopular": false
+  },
+  {
+    "id": "novel_scifi",
+    "name": "科幻小说",
+    "slug": "novel-scifi",
+    "icon": "🚀",
+    "color": "#6366f1",
+    "count": 8,
+    "isPopular": true
+  }
+]

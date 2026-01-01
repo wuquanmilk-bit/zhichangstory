@@ -1,0 +1,218 @@
+[
+  {
+    "id": "novel_1",
+    "title": "我能看见未来",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "林峰意外获得预知未来的能力，从此人生开挂，但能力背后隐藏着巨大的秘密。当他预见到自己将在一个月后死去，他必须与时间赛跑，揭开能力背后的真相，改变自己的命运。",
+    "excerpt": "都市异能小说，讲述主角获得预知未来能力的故事",
+    "category": "都市异能",
+    "tags": [
+      "异能",
+      "都市",
+      "成长",
+      "热血",
+      "悬疑"
+    ],
+    "stats": {
+      "views": 52000,
+      "likes": 1200,
+      "bookmarks": 450,
+      "comments": 89,
+      "wordCount": 256000
+    },
+    "chapters": 12,
+    "isComplete": false,
+    "isPopular": true,
+    "rating": 9.2,
+    "ratingCount": 1200,
+    "createdAt": "2023-06-15T10:30:00Z",
+    "updatedAt": "2024-01-20T14:45:00Z",
+    "isMock": true
+  },
+  {
+    "id": "novel_2",
+    "title": "古代厨娘在现代",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "古代御厨苏婉儿穿越到现代，凭借一手精湛厨艺征服世界，却意外卷入商业帝国的斗争。看她如何用美食改变命运，创立自己的餐饮帝国，同时寻找回到古代的方法。",
+    "excerpt": "穿越美食小说，古代厨娘在现代的逆袭故事",
+    "category": "穿越美食",
+    "tags": [
+      "穿越",
+      "美食",
+      "商业",
+      "逆袭",
+      "言情"
+    ],
+    "stats": {
+      "views": 89000,
+      "likes": 2400,
+      "bookmarks": 850,
+      "comments": 156,
+      "wordCount": 483000
+    },
+    "chapters": 48,
+    "isComplete": true,
+    "isPopular": true,
+    "rating": 9.5,
+    "ratingCount": 2400,
+    "createdAt": "2023-03-10T09:15:00Z",
+    "updatedAt": "2023-12-20T16:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "novel_3",
+    "title": "时间旅行者的日记",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "一本神秘的日记，让主人公能够穿越时间，但每一次穿越都会改变未来。当他发现自己被困在时间循环中，必须找到打破循环的方法，否则将永远重复同一天。",
+    "excerpt": "科幻悬疑小说，关于时间旅行和时间循环的故事",
+    "category": "科幻悬疑",
+    "tags": [
+      "科幻",
+      "悬疑",
+      "时间旅行",
+      "烧脑",
+      "循环"
+    ],
+    "stats": {
+      "views": 37000,
+      "likes": 850,
+      "bookmarks": 320,
+      "comments": 65,
+      "wordCount": 158000
+    },
+    "chapters": 8,
+    "isComplete": false,
+    "isPopular": true,
+    "rating": 8.9,
+    "ratingCount": 850,
+    "createdAt": "2023-09-05T14:20:00Z",
+    "updatedAt": "2024-01-15T11:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "novel_4",
+    "title": "修仙学院",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "普通大学生林风获得修仙学院系统，从此开启不一样的修仙之路。在现代化的修仙学院中，学习功法、炼丹、炼器，与各种天才竞争，最终成为一代仙尊。",
+    "excerpt": "修仙系统文，现代背景下的修仙学院故事",
+    "category": "玄幻奇幻",
+    "tags": [
+      "修仙",
+      "系统",
+      "学院",
+      "成长",
+      "热血"
+    ],
+    "stats": {
+      "views": 68000,
+      "likes": 1500,
+      "bookmarks": 580,
+      "comments": 120,
+      "wordCount": 325000
+    },
+    "chapters": 25,
+    "isComplete": false,
+    "isPopular": true,
+    "rating": 8.7,
+    "ratingCount": 1500,
+    "createdAt": "2023-11-20T13:45:00Z",
+    "updatedAt": "2024-01-25T10:15:00Z",
+    "isMock": true
+  },
+  {
+    "id": "novel_5",
+    "title": "重生之商海传奇",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "商业精英陈锋重生回到90年代，凭借前世记忆，在改革开放的大潮中抓住机遇，从摆地摊开始，一步步缔造商业帝国，成为一代商界传奇。",
+    "excerpt": "重生商战文，90年代背景的商业传奇故事",
+    "category": "都市重生",
+    "tags": [
+      "重生",
+      "商战",
+      "逆袭",
+      "年代",
+      "励志"
+    ],
+    "stats": {
+      "views": 75000,
+      "likes": 1800,
+      "bookmarks": 720,
+      "comments": 145,
+      "wordCount": 420000
+    },
+    "chapters": 40,
+    "isComplete": true,
+    "isPopular": true,
+    "rating": 9,
+    "ratingCount": 1800,
+    "createdAt": "2023-05-12T11:20:00Z",
+    "updatedAt": "2023-12-05T15:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "novel_6",
+    "title": "星际指挥官",
+    "authorId": "user_2",
+    "author": {
+      "id": "user_2",
+      "username": "chen_writer",
+      "displayName": "小陈作家",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小陈作家"
+    },
+    "description": "意外成为星际战舰指挥官，在浩瀚宇宙中探索未知，对抗外星威胁，建立星际帝国。从一艘小型护卫舰开始，逐步成长为掌控整个星系的霸主。",
+    "excerpt": "星际科幻文，宇宙探索和星际争霸的故事",
+    "category": "科幻末世",
+    "tags": [
+      "科幻",
+      "星际",
+      "战争",
+      "探索",
+      "太空"
+    ],
+    "stats": {
+      "views": 45000,
+      "likes": 950,
+      "bookmarks": 380,
+      "comments": 75,
+      "wordCount": 195000
+    },
+    "chapters": 15,
+    "isComplete": false,
+    "isPopular": false,
+    "rating": 8.5,
+    "ratingCount": 950,
+    "createdAt": "2023-12-08T09:30:00Z",
+    "updatedAt": "2024-01-22T13:20:00Z",
+    "isMock": true
+  }
+]

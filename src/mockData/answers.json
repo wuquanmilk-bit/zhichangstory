@@ -1,0 +1,212 @@
+[
+  {
+    "id": "answer_1",
+    "questionId": "question_1",
+    "content": "作为有10年前端经验的开发者，我建议从HTML/CSS/JavaScript基础开始，然后学习一个框架如React或Vue。最重要的是多动手实践，做一些小项目。学习路径可以是：1. HTML/CSS基础 2. JavaScript核心概念 3. DOM操作 4. ES6+新特性 5. 选择一个框架深入学习 6. 学习版本控制Git 7. 学习打包工具如Webpack 8. 参与实际项目。",
+    "excerpt": "从HTML/CSS/JavaScript基础开始学习，多动手实践...",
+    "authorId": "user_1",
+    "author": {
+      "id": "user_1",
+      "username": "wang_teacher",
+      "displayName": "王老师",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=王老师"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 128,
+      "comments": 12
+    },
+    "createdAt": "2024-01-16T10:15:00Z",
+    "updatedAt": "2024-01-16T10:15:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_2",
+    "questionId": "question_1",
+    "content": "我建议从Python开始，语法简单，应用广泛，适合初学者。学完基础后可以尝试Django或Flask做web开发，或者用pandas做数据分析。",
+    "excerpt": "从Python开始学习，语法简单应用广泛...",
+    "authorId": "user_4",
+    "author": {
+      "id": "user_4",
+      "username": "zhang_professor",
+      "displayName": "张教授",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=张教授"
+    },
+    "isAccepted": false,
+    "stats": {
+      "likes": 45,
+      "comments": 5
+    },
+    "createdAt": "2024-01-16T14:30:00Z",
+    "updatedAt": "2024-01-16T14:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_3",
+    "questionId": "question_2",
+    "content": "Vue对新手更友好，文档完善，中文支持好，学习曲线平缓。React更灵活，生态更丰富，大公司使用更多。建议都了解一下，但可以先从Vue开始。",
+    "excerpt": "Vue对新手更友好，React生态更丰富...",
+    "authorId": "user_1",
+    "author": {
+      "id": "user_1",
+      "username": "wang_teacher",
+      "displayName": "王老师",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=王老师"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 96,
+      "comments": 8
+    },
+    "createdAt": "2024-01-19T14:30:00Z",
+    "updatedAt": "2024-01-19T14:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_4",
+    "questionId": "question_2",
+    "content": "从就业市场看，React的需求量更大，尤其是大公司。但Vue在国内很受欢迎。建议学习React，因为学完React再学Vue很容易，反过来则不然。",
+    "excerpt": "React就业市场需求更大，建议先学React...",
+    "authorId": "user_7",
+    "author": {
+      "id": "user_7",
+      "username": "xiaowang_work",
+      "displayName": "上班族小王",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小王"
+    },
+    "isAccepted": false,
+    "stats": {
+      "likes": 32,
+      "comments": 3
+    },
+    "createdAt": "2024-01-20T09:15:00Z",
+    "updatedAt": "2024-01-20T09:15:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_5",
+    "questionId": "question_3",
+    "content": "克服拖延症的几个方法：1. 番茄工作法，25分钟专注工作+5分钟休息 2. 任务分解，把大任务拆成小任务 3. 设定明确期限 4. 消除干扰，关闭手机通知 5. 先做最难的事 6. 奖励自己完成任务。",
+    "excerpt": "番茄工作法、任务分解、消除干扰等方法...",
+    "authorId": "user_3",
+    "author": {
+      "id": "user_3",
+      "username": "knowledge_base",
+      "displayName": "知识小百科",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=知识小百科"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 58,
+      "comments": 6
+    },
+    "createdAt": "2024-01-21T10:45:00Z",
+    "updatedAt": "2024-01-21T10:45:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_6",
+    "questionId": "question_4",
+    "content": "谈薪资的技巧：1. 先了解市场行情，知道自己值多少钱 2. 让对方先出价 3. 给出一个范围而不是具体数字 4. 不要只看薪资，还要看福利、发展空间 5. 准备好自己的价值证明。",
+    "excerpt": "了解市场行情，让对方先出价，给出范围...",
+    "authorId": "user_7",
+    "author": {
+      "id": "user_7",
+      "username": "xiaowang_work",
+      "displayName": "上班族小王",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=小王"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 42,
+      "comments": 4
+    },
+    "createdAt": "2024-01-23T11:20:00Z",
+    "updatedAt": "2024-01-23T11:20:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_7",
+    "questionId": "question_6",
+    "content": "Python在数据分析中的优势：1. 简洁易学 2. 丰富的库（pandas, numpy, matplotlib, scikit-learn等） 3. 强大的社区支持 4. 与大数据工具集成好 5. 可视化能力强。需要学习的库：pandas（数据处理）、numpy（数值计算）、matplotlib（绘图）、scikit-learn（机器学习）。",
+    "excerpt": "Python简洁易学，库丰富，社区强大...",
+    "authorId": "user_4",
+    "author": {
+      "id": "user_4",
+      "username": "zhang_professor",
+      "displayName": "张教授",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=张教授"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 38,
+      "comments": 3
+    },
+    "createdAt": "2024-01-17T15:30:00Z",
+    "updatedAt": "2024-01-17T15:30:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_8",
+    "questionId": "question_8",
+    "content": "提高工作效率的工具推荐：1. 时间管理：Todoist, Trello, Notion 2. 笔记：Obsidian, Roam Research 3. 代码：VS Code, GitHub Copilot 4. 沟通：Slack, Discord 5. 设计：Figma, Canva。",
+    "excerpt": "Todoist, Notion, VS Code, Figma等工具推荐...",
+    "authorId": "user_1",
+    "author": {
+      "id": "user_1",
+      "username": "wang_teacher",
+      "displayName": "王老师",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=王老师"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 40,
+      "comments": 5
+    },
+    "createdAt": "2024-01-18T13:45:00Z",
+    "updatedAt": "2024-01-18T13:45:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_9",
+    "questionId": "question_10",
+    "content": "机器学习需要的数学基础：1. 线性代数（矩阵、向量、特征值） 2. 概率论与统计（概率分布、假设检验） 3. 微积分（导数、梯度、优化） 4. 最优化理论。不需要成为数学专家，但需要理解基本概念。",
+    "excerpt": "线性代数、概率论、微积分、最优化理论...",
+    "authorId": "user_4",
+    "author": {
+      "id": "user_4",
+      "username": "zhang_professor",
+      "displayName": "张教授",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=张教授"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 35,
+      "comments": 4
+    },
+    "createdAt": "2024-01-14T16:20:00Z",
+    "updatedAt": "2024-01-14T16:20:00Z",
+    "isMock": true
+  },
+  {
+    "id": "answer_10",
+    "questionId": "question_11",
+    "content": "前端开发学习顺序：1. HTML基础（标签、语义化） 2. CSS基础（选择器、盒模型、布局） 3. JavaScript核心（变量、函数、DOM操作） 4. ES6+新特性 5. CSS进阶（Flexbox、Grid、动画） 6. 响应式设计 7. 选择一个框架（React/Vue） 8. 打包工具（Webpack/Vite） 9. TypeScript 10. 测试。",
+    "excerpt": "HTML → CSS → JavaScript → 框架 → 工具...",
+    "authorId": "user_1",
+    "author": {
+      "id": "user_1",
+      "username": "wang_teacher",
+      "displayName": "王老师",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=王老师"
+    },
+    "isAccepted": true,
+    "stats": {
+      "likes": 52,
+      "comments": 6
+    },
+    "createdAt": "2024-01-11T14:45:00Z",
+    "updatedAt": "2024-01-11T14:45:00Z",
+    "isMock": true
+  }
+]
