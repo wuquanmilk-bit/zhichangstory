@@ -565,7 +565,7 @@ function HomePage() {
             </div>
           </div>
           
-          {/* 武侠小说骨架屏 - 移到下面 */}
+          {/* 谷子小说骨架屏 - 移到下面 */}
           <div className="mb-12">
             <div className="flex justify-between items-end mb-8">
               <div className="h-10 w-48 bg-gradient-to-r from-stone-200 to-stone-300 rounded-xl animate-pulse" />
@@ -664,7 +664,7 @@ function HomePage() {
           )}
         </div>
 
-        {/* 武侠小说专区 - 移到下面 */}
+        {/* 谷子小说专区 - 移到下面 */}
         <div className="mb-12">
           <div className="flex justify-between items-end mb-8">
             <div className="flex items-center gap-3">
@@ -673,7 +673,7 @@ function HomePage() {
               </div>
               <div>
                 <h2 className="text-2xl font-black bg-gradient-to-r from-amber-700 to-yellow-700 bg-clip-text text-transparent">
-                  武侠小说
+                  谷子小说
                 </h2>
                 <p className="text-sm text-stone-500">江湖侠客的笔墨江湖</p>
               </div>
@@ -780,10 +780,10 @@ function HomePage() {
               <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500">
                 <MessageSquare size={20} className="text-white" />
               </div>
-              <h3 className="font-bold text-lg text-stone-900">武侠创作</h3>
+              <h3 className="font-bold text-lg text-stone-900">谷子创作</h3>
             </div>
             <p className="text-sm text-stone-600 mb-4">
-              在笔墨江湖中挥洒你的武侠梦，创作属于自己的江湖故事
+              在笔墨江湖中挥洒你的谷子梦，创作属于自己的江湖故事
             </p>
             <div className="h-1 w-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-full" />
           </div>

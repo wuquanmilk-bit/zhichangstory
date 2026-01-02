@@ -260,7 +260,7 @@ const NovelCard = memo(({
               );
             })}
             <span className="text-[11px] text-red-800 font-bold px-2 bg-red-50 rounded">
-              {novel.category || '武侠'}
+              {novel.category || '谷子'}
             </span>
           </div>
           <p className="text-stone-500 text-xs line-clamp-2 leading-relaxed overflow-hidden font-serif italic mb-3 min-h-[2.5rem]">

@@ -606,7 +606,7 @@ function WritePage() {
                 <div>
                   <p className="text-sm text-gray-600 mb-2">热门标签：</p>
                   <div className="flex flex-wrap gap-2">
-                    {['玄幻', '都市', '言情', '科幻', '历史', '武侠', '职场', '穿越'].map((tag) => (
+                    {['玄幻', '都市', '言情', '科幻', '历史', '谷子', '职场', '穿越'].map((tag) => (
                       <button
                         type="button"
                         key={tag}
