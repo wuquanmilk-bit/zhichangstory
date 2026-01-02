@@ -19,7 +19,18 @@ const UserBadges = ({ profile }: { profile: any }) => {
       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-full border border-gray-200">
         基础会员
       </span>
-      {/* [修改]：基于经验(exp)计算等级 */}
+      
+      {/* 经验值标签 - 新增 */}
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-200">
+        <Zap className="h-3 w-3" /> {profile.exp?.toLocaleString() || 0} 修为
+      </span>
+      
+      {/* 金币标签 - 新增 */}
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-600 text-[10px] font-bold rounded-full border border-yellow-200">
+        <Coins className="h-3 w-3" /> {profile.coins?.toLocaleString() || 0} 金币
+      </span>
+      
+      {/* 等级标签 */}
       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-100">
         <Zap className="h-3 w-3 fill-current" /> LV.{profile.user_level || Math.floor((profile.exp || 0) / 1000) + 1}
       </span>
