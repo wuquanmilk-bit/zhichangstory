@@ -181,9 +181,15 @@ export default function NovelReadingPage() {
 
       <div className="max-w-2xl mx-auto px-6 py-12 w-full box-sizing: border-box">
         <header className="mb-12 text-center">
-          <h1 className="text-3xl font-serif font-black mb-4 leading-tight break-words whitespace-pre-wrap w-full">
-            {novel.title}
-          </h1>
+         <h1 
+  className="text-3xl font-serif font-black mb-4 leading-tight break-words whitespace-pre-wrap w-full max-w-full"
+  style={{
+    wordBreak: 'break-all', // 强制任意字符（包括无空格连续字符）换行
+    overflowWrap: 'break-word' // 长单词拆分换行，双重保障
+  }}
+>
+  {novel.title}
+</h1>
           <p className="text-[10px] text-stone-400 font-bold tracking-[0.2em] uppercase">
             第 {currentPage + 1} / {totalPages} 回  |  刊印：{formatDate(novel.created_at)}
           </p>
