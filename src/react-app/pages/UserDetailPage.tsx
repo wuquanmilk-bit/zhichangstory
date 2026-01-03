@@ -4,419 +4,327 @@ import { supabase } from '../../supabaseClient';
 import { AVATAR_OPTIONS } from '../../constants/avatars';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
-  MessageSquare, BookOpen, ThumbsUp, Eye, Calendar, User, 
-  Edit, Loader2, RefreshCw, Trash2, Heart, Plus, Lock, X, 
-  CheckCircle2, Award, Zap, ShieldCheck, Coins, Crown, BadgeCheck, UserCog, Shield
+  MessageSquare, BookOpen, User, Edit, Trash2, 
+  Zap, Shield, Crown, Coins, Star, checkCircle2,
+  Play, Video, Feather, CheckCircle // 💡 确保图标齐全
 } from 'lucide-react';
 
-// --- 统一的标签渲染组件 ---
+// --- 1. 核心：找回你的身份标签系统 ---
 const UserBadges = ({ profile }: { profile: any }) => {
   if (!profile) return null;
-  
   return (
-    <div className="flex flex-wrap gap-1.5 ml-2">
-      {/* 基础会员/等级 */}
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-full border border-gray-200">
-        基础会员
-      </span>
-      
-      {/* 经验值标签 - 新增 */}
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-200">
-        <Zap className="h-3 w-3" /> {profile.exp?.toLocaleString() || 0} 修为
-      </span>
-      
-      {/* 金币标签 - 新增 */}
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-600 text-[10px] font-bold rounded-full border border-yellow-200">
-        <Coins className="h-3 w-3" /> {profile.coins?.toLocaleString() || 0} 金币
-      </span>
-      
-      {/* 等级标签 */}
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-100">
-        <Zap className="h-3 w-3 fill-current" /> LV.{profile.user_level || Math.floor((profile.exp || 0) / 1000) + 1}
-      </span>
-
-      {/* --- 同步 SecretManager 的标签逻辑 --- */}
-      {profile.is_vip && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-600 text-[10px] font-bold rounded-full border border-amber-200">
-          <Crown className="h-3 w-3 fill-current" /> VIP会员
+    <div className="flex flex-wrap gap-1.5 ml-2 items-center">
+      {/* 官方管理员 */}
+      {(profile.is_admin || profile.is_super_admin) && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold rounded-full border border-red-100 shadow-sm">
+          <Shield className="h-3 w-3 fill-current" /> 官方管理
         </span>
       )}
+      
+      {/* 签约作者 */}
       {profile.is_contract_author && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-orange-100 to-red-100 text-orange-600 text-[10px] font-bold rounded-full border border-orange-200">
-          <Award className="h-3 w-3" /> 签约作家
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-100 shadow-sm">
+          <Feather className="h-3 w-3" /> 签约作者
         </span>
       )}
+
+      {/* 尊贵会员 */}
+      {profile.is_vip && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100 shadow-sm">
+          <Crown className="h-3 w-3 fill-current" /> 尊贵会员
+        </span>
+      )}
+
+      {/* 蓝V认证 */}
       {profile.is_blue_v && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-600 text-[10px] font-bold rounded-full border border-blue-200">
-          <BadgeCheck className="h-3 w-3" /> 蓝V认证
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sky-50 text-sky-500 text-[10px] font-bold rounded-full border border-sky-100">
+          <CheckCircle className="h-3 w-3" /> 认证专家
         </span>
       )}
-      {profile.is_verified && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 text-[10px] font-bold rounded-full border border-purple-200">
-          <CheckCircle2 className="h-3 w-3" /> 实名认证
-        </span>
-      )}
-      {profile.is_author && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-600 text-[10px] font-bold rounded-full border border-green-200">
-          <UserCog className="h-3 w-3" /> 认证作者
-        </span>
-      )}
-      {profile.is_moderator && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-indigo-100 to-violet-100 text-indigo-600 text-[10px] font-bold rounded-full border border-indigo-200">
-          <Shield className="h-3 w-3" /> 社区版主
-        </span>
-      )}
+
+      {/* 等级/修为展示 */}
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full border border-purple-100">
+        <Zap className="h-3 w-3" /> Lv.{profile.user_level || 1}
+      </span>
     </div>
   );
 };
 
-// 保留你原有类型定义
-type Novel = {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  cover: string;
-  user_id?: string;
-  author?: { id: string }; 
-  created_at: string;
-  stats?: {
-    views: number;
-    likes: number;
-    chapters: number;
-  };
-  views?: number;
-  likes?: number;
-  reads?: number;
-  is_public?: boolean;
-  category?: string;
-  tags?: string[];
-};
-
 export default function UserDetailPage() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { id: paramUserId } = useParams();
+  const { id } = useParams();
+  const { user: currentUser } = useAuth();
   
+  // 状态定义
   const [profile, setProfile] = useState<any>(null);
-  const [myQuestions, setMyQuestions] = useState<any[]>([]);
-  const [myNovels, setMyNovels] = useState<Novel[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [novels, setNovels] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]); // 💡 视频数据
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'questions' | 'novels'>('questions');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{type: 'question' | 'novel', id: string} | null>(null);
-  const [novelError, setNovelError] = useState<string | null>(null);
-  const [novelLoading, setNovelLoading] = useState(false);
+  
+  // Tab 定义
+  const [activeTab, setActiveTab] = useState<'questions' | 'novels' | 'videos'>('questions');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: 'question' | 'novel' | 'video', id: string } | null>(null);
 
-  const isOwnProfile = !paramUserId || (user?.id && paramUserId === user.id);
-  const targetUserId = isOwnProfile ? user?.id : paramUserId;
-
-  // 修复后的统计函数
-  const getStats = () => {
-    if (novelLoading || loading) {
-      return { likes: 0, views: 0 };
-    }
-
-    const qLikes = (myQuestions || []).reduce((s, q) => s + (Number(q.likes) || Number(q.stats?.likes) || 0), 0);
-    const qViews = (myQuestions || []).reduce((s, q) => s + (Number(q.views) || Number(q.stats?.views) || 0), 0);
-    
-    const nLikes = (myNovels || []).reduce((s, n) => {
-      const likeCount = Number(n.likes) || Number(n.stats?.likes) || 0;
-      return s + likeCount;
-    }, 0);
-    
-    const nViews = (myNovels || []).reduce((s, n) => {
-      const viewCount = Number(n.views) || Number(n.stats?.views) || Number(n.reads) || 0;
-      return s + viewCount;
-    }, 0);
-
-    return { likes: qLikes + nLikes, views: qViews + nViews };
-  };
+  const isOwnProfile = currentUser?.id === id;
 
   useEffect(() => {
-    getStats();
-  }, [myNovels, myQuestions, novelLoading, loading]);
+    fetchProfileData();
+  }, [id]);
 
-  const fetchUserData = async () => {
-    if (!targetUserId) { 
-      setLoading(false); 
-      return; 
-    }
-    
+  const fetchProfileData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setRefreshing(true);
-      
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', targetUserId)
-        .single();
-      
-      if (profileError) {
-        setProfile({});
-      } else {
-        setProfile(profileData || {});
-      }
+      // 1. 获取用户信息
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', id).single();
+      setProfile(profileData);
 
-      const { data: qData, error: qError } = await supabase
-        .from('questions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (qError) {
-        setMyQuestions([]);
-      } else {
-        const userQuestions = (qData || []).filter(q => {
-          if (q.author_id && q.author_id === targetUserId) return true;
-          if (q.author && typeof q.author === 'object' && q.author.id === targetUserId) return true;
-          if (q.author && typeof q.author === 'string') {
-            try {
-              const authorObj = JSON.parse(q.author);
-              return authorObj.id === targetUserId;
-            } catch (e) {
-              return false;
-            }
-          }
-          return false;
-        });
-        setMyQuestions(userQuestions);
-      }
+      // 2. 获取数据 (问答、小说、视频)
+      const { data: qData } = await supabase.from('questions').select('*').eq('user_id', id).order('created_at', { ascending: false });
+      const { data: nData } = await supabase.from('novels').select('*').eq('author_id', id).order('created_at', { ascending: false });
+      const { data: vData } = await supabase.from('videos').select('*').eq('user_id', id).order('created_at', { ascending: false });
 
-      await fetchNovelsByUserId(targetUserId);
-      
-    } catch (err) {
-      console.error('获取用户数据失败:', err);
+      setQuestions(qData || []);
+      setNovels(nData || []);
+      setVideos(vData || []);
+
+    } catch (error) {
+      console.error('数据加载失败:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const fetchNovelsByUserId = async (userId: string) => {
-    setNovelLoading(true);
-    setNovelError(null);
-    try {
-      const { data, error } = await supabase
-        .from('novels')
-        .select('*')
-        .or(`author->>id.eq.${userId},user_id.eq.${userId}`)
-        .order('created_at', { ascending: false });
+  // --- 统一删除逻辑 ---
+  const handleConfirmDelete = async () => {
+    if (!showDeleteConfirm) return;
+    const { type, id: targetId } = showDeleteConfirm;
 
+    try {
+      // 映射表名
+      const table = type === 'question' ? 'questions' : type === 'novel' ? 'novels' : 'videos';
+      
+      const { error } = await supabase.from(table).delete().eq('id', targetId);
       if (error) throw error;
-      setMyNovels(data as Novel[]);
-    } catch (error: any) {
-      setNovelError(error.message || '获取小说失败');
-    } finally {
-      setNovelLoading(false);
+
+      // 更新前端状态
+      if (type === 'question') setQuestions(prev => prev.filter(q => q.id !== targetId));
+      if (type === 'novel') setNovels(prev => prev.filter(n => n.id !== targetId));
+      if (type === 'video') setVideos(prev => prev.filter(v => v.id !== targetId));
+      
+      setShowDeleteConfirm(null);
+    } catch (err: any) {
+      alert("删除失败: " + err.message);
     }
   };
 
-  useEffect(() => { 
-    if (targetUserId) {
-      fetchUserData(); 
-    }
-  }, [targetUserId, user?.id]);
-
-  const handleDeleteQuestion = async () => {
-    if (!user?.id || !showDeleteConfirm || showDeleteConfirm.type !== 'question') {
-      setShowDeleteConfirm(null);
-      return;
-    }
-    
-    const questionId = showDeleteConfirm.id;
-    try {
-      const { error: deleteError } = await supabase
-        .from('questions')
-        .delete()
-        .eq('id', questionId);
-        
-      if (deleteError) throw deleteError;
-      setMyQuestions(prev => prev.filter(q => q.id !== questionId));
-      alert('删除成功');
-    } catch (err: any) { 
-      alert('删除失败: ' + err.message);
-    } finally {
-      setShowDeleteConfirm(null);
-    }
-  };
-
-  const handleDeleteNovel = async () => {
-    if (!user?.id || !showDeleteConfirm || showDeleteConfirm.type !== 'novel') {
-      setShowDeleteConfirm(null);
-      return;
-    }
-    
-    const novelId = showDeleteConfirm.id;
-    try {
-      const { error: deleteError } = await supabase
-        .from('novels')
-        .delete()
-        .eq('id', novelId);
-        
-      if (deleteError) throw deleteError;
-      setMyNovels(prev => prev.filter(n => n.id !== novelId));
-      alert('删除成功');
-    } catch (err: any) { 
-      alert('删除失败: ' + err.message);
-    } finally {
-      setShowDeleteConfirm(null);
-    }
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
-  const stats = getStats();
+  if (loading) return <div className="p-20 text-center text-gray-400">正在读取用户档案...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* 用户资料卡片 */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div className="h-32 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-        <div className="px-8 pb-8 flex flex-col md:flex-row md:items-end gap-6 -mt-12">
-          <div className="h-32 w-32 rounded-3xl border-4 border-white shadow-xl bg-white overflow-hidden relative group">
-            <img 
-              src={AVATAR_OPTIONS.find(a => a.id === profile?.avatar_id)?.url || AVATAR_OPTIONS[0].url} 
-              className="h-full w-full object-cover" 
-              alt="avatar"
-            />
-            <button 
-              onClick={fetchUserData} 
-              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-            >
-              <RefreshCw className={`text-white h-6 w-6 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
+    <div className="max-w-5xl mx-auto px-4 pb-12">
+      {/* --- 顶部个人资料卡片 (恢复金币/修为显示) --- */}
+      <div className="bg-white rounded-[40px] p-8 shadow-sm border border-gray-100 mb-8 mt-4 relative overflow-hidden">
+        {/* 背景装饰 */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full blur-3xl -z-10 opacity-60"></div>
+
+        <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+          {/* 头像区域 */}
+          <div className="relative group">
+            <div className="w-32 h-32 rounded-[32px] bg-gradient-to-br from-blue-500 to-purple-600 p-1 shadow-xl">
+              <div className="w-full h-full rounded-[28px] bg-white overflow-hidden border-4 border-white">
+                <img 
+                  src={AVATAR_OPTIONS.find(a => a.id === profile?.avatar_id)?.url || AVATAR_OPTIONS[0].url} 
+                  className="w-full h-full object-cover" 
+                  alt="avatar"
+                />
+              </div>
+            </div>
+            {/* 恢复：等级标签 */}
+            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-3 py-1 rounded-full border-2 border-white whitespace-nowrap shadow-md">
+              Lv.{profile?.user_level || 1}
+            </div>
           </div>
           
-          <div className="flex-1 mb-2">
-            <div className="flex flex-wrap items-center gap-2 mb-1">
+          <div className="flex-grow text-center md:text-left">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-3">
               <h1 className="text-3xl font-black text-gray-900">
-                {profile?.username || (isOwnProfile ? '我的个人主页' : '用户主页')}
+                {profile?.username || profile?.full_name || '未名用户'}
               </h1>
-              
-              {/* --- 使用新的标签渲染组件 --- */}
+              {/* 恢复：身份勋章组件 */}
               <UserBadges profile={profile} />
-              
             </div>
-            <p className="text-gray-600 text-sm font-medium mt-2 mb-3 max-w-2xl italic leading-relaxed">
-              {profile?.bio || (isOwnProfile ? "完善你的个人简介，让大家更了解你..." : "这个作者很神秘，还没有写下个人简介...")}
+            
+            <p className="text-gray-500 font-medium mb-6 text-sm leading-relaxed max-w-2xl">
+              {profile?.bio || '这家伙很神秘，什么都没写...'}
             </p>
-            <p className="text-gray-400 font-medium text-[10px] flex items-center gap-1 uppercase tracking-widest">
-              ID: {targetUserId?.substring(0, 8)} • {profile?.email}
-            </p>
+            
+            {/* 恢复：数据统计栏 (金币、修为、作品) */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-3">
+              <div className="px-5 py-3 bg-amber-50 rounded-2xl border border-amber-100 min-w-[100px]">
+                <span className="text-amber-600/70 text-[10px] font-bold uppercase block mb-1 flex items-center gap-1">
+                  <Coins className="h-3 w-3" /> 金币
+                </span>
+                <span className="font-black text-amber-900 text-xl">{profile?.coins?.toLocaleString() || 0}</span>
+              </div>
+
+              <div className="px-5 py-3 bg-purple-50 rounded-2xl border border-purple-100 min-w-[100px]">
+                <span className="text-purple-600/70 text-[10px] font-bold uppercase block mb-1 flex items-center gap-1">
+                  <Zap className="h-3 w-3" /> 修为
+                </span>
+                <span className="font-black text-purple-900 text-xl">{profile?.exp?.toLocaleString() || 0}</span>
+              </div>
+
+              <div className="px-5 py-3 bg-gray-50 rounded-2xl border border-gray-100 min-w-[100px]">
+                <span className="text-gray-400 text-[10px] font-bold uppercase block mb-1 flex items-center gap-1">
+                  <Star className="h-3 w-3" /> 创作
+                </span>
+                <span className="font-black text-gray-900 text-xl">
+                  {questions.length + novels.length + videos.length}
+                </span>
+              </div>
+            </div>
           </div>
+
           {isOwnProfile && (
-            <div className="flex gap-3 mb-2">
-              <Link to="/write/novel" className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:shadow-xl transition flex items-center gap-2">
-                <BookOpen className="h-4 w-4" /> 开始创作
-              </Link>
-              <Link to="/ask-question" className="px-6 py-3 bg-white text-gray-700 border-2 border-gray-100 rounded-2xl font-bold hover:border-blue-100 hover:text-blue-600 transition flex items-center gap-2">
-                <Plus className="h-4 w-4" /> 提个问题
-              </Link>
-            </div>
+            <Link to="/settings" className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg active:scale-95">
+              <Edit className="h-4 w-4" /> 资料设置
+            </Link>
           )}
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-red-50 p-6 rounded-3xl border border-white">
-          <Heart className="h-5 w-5 text-red-500 fill-current mb-2" />
-          <div className="text-2xl font-black">{stats.likes}</div>
-          <div className="text-xs font-bold text-red-400 uppercase">累计获赞</div>
-        </div>
-        <div className="bg-blue-50 p-6 rounded-3xl border border-white">
-          <Eye className="h-5 w-5 text-blue-500 mb-2" />
-          <div className="text-2xl font-black">{stats.views}</div>
-          <div className="text-xs font-bold text-blue-400 uppercase">阅读总量</div>
-        </div>
-        <div className="bg-purple-50 p-6 rounded-3xl border border-white">
-          <MessageSquare className="h-5 w-5 text-purple-500 mb-2" />
-          <div className="text-2xl font-black">{myQuestions.length}</div>
-          <div className="text-xs font-bold text-purple-400 uppercase">谷子提问</div>
-        </div>
-        <div className="bg-emerald-50 p-6 rounded-3xl border border-white">
-          <BookOpen className="h-5 w-5 text-emerald-500 mb-2" />
-          <div className="text-2xl font-black">{myNovels.length}</div>
-          <div className="text-xs font-bold text-emerald-400 uppercase">小说作品</div>
-        </div>
+      {/* --- Tab 导航 (增加视频) --- */}
+      <div className="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+        {[
+          { id: 'questions', label: '问答', icon: MessageSquare },
+          { id: 'novels', label: '谷子小说', icon: BookOpen },
+          { id: 'videos', label: '视频', icon: Video }
+        ].map((tab: any) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all whitespace-nowrap border ${
+              activeTab === tab.id 
+                ? 'bg-gray-900 text-white border-gray-900 shadow-lg' 
+                : 'bg-white text-gray-500 border-transparent hover:bg-gray-50'
+            }`}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* 标签页切换 */}
-      <div className="flex items-center p-1 bg-gray-100 rounded-2xl w-fit mb-8">
-        <button onClick={() => setActiveTab('questions')} className={`px-8 py-2.5 rounded-xl font-bold transition ${activeTab === 'questions' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>
-          {isOwnProfile ? '我的提问' : 'TA 的提问'}
-        </button>
-        <button onClick={() => setActiveTab('novels')} className={`px-8 py-2.5 rounded-xl font-bold transition ${activeTab === 'novels' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}>
-          {isOwnProfile ? '我的小说' : 'TA 的小说'}
-        </button>
-      </div>
+      {/* --- 内容列表区 --- */}
+      <div className="min-h-[400px]">
+        
+        {/* 1. 视频列表 */}
+        {activeTab === 'videos' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4">
+            {videos.length === 0 ? (
+              <div className="col-span-full py-20 text-center text-gray-400">暂无视频作品</div>
+            ) : (
+              videos.map(video => (
+                <div key={video.id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 group shadow-sm hover:shadow-lg transition-all">
+                  <div className="relative aspect-video bg-black">
+                    <video src={video.video_url} className="w-full h-full object-cover opacity-80" />
+                    <Link to={`/video/${video.id}`} className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white">
+                        <Play className="w-8 h-8 fill-current" />
+                      </div>
+                    </Link>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-bold text-gray-900 line-clamp-1 mb-3">{video.title}</h3>
+                    <div className="flex justify-between items-center text-xs text-gray-400">
+                      <span>{new Date(video.created_at).toLocaleDateString()}</span>
+                      {isOwnProfile && (
+                        <button 
+                          onClick={() => setShowDeleteConfirm({ type: 'video', id: video.id })}
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" /> 删除
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-      {/* 内容区域 */}
-      <div className="space-y-4">
-        {activeTab === 'questions' ? (
-          myQuestions.length === 0 ? (
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 text-center">
-              <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-500">暂无提问</h3>
-            </div>
-          ) : (
-            myQuestions.map(q => (
-              <div key={q.id} className="bg-white p-6 rounded-3xl border border-gray-100 hover:shadow-md transition">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2 hover:text-blue-600">
-                      <Link to={`/question/${q.id}`}>{q.title}</Link>
-                    </h3>
+        {/* 2. 小说列表 */}
+        {activeTab === 'novels' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4">
+            {novels.map(novel => (
+              <div key={novel.id} className="bg-white rounded-3xl p-4 border border-gray-100 flex gap-4 hover:shadow-md transition-all">
+                <div className="w-20 h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                  {novel.cover && <img src={novel.cover} className="w-full h-full object-cover" />}
+                </div>
+                <div className="flex-grow flex flex-col justify-between py-1">
+                  <div>
+                    <Link to={`/novel/${novel.id}`} className="font-bold text-gray-900 line-clamp-1 hover:text-blue-600 text-lg">
+                      {novel.title}
+                    </Link>
+                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{novel.description}</p>
                   </div>
                   {isOwnProfile && (
-                    <div className="flex gap-2">
-                      <button onClick={() => setShowDeleteConfirm({ type: 'question', id: q.id })} className="p-2 text-gray-400 hover:text-red-600 rounded-lg">
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
+                    <button 
+                      onClick={() => setShowDeleteConfirm({ type: 'novel', id: novel.id })}
+                      className="self-end text-red-400 hover:text-red-600 text-xs font-bold flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" /> 删除
+                    </button>
                   )}
-                </div>
-              </div>
-            ))
-          )
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myNovels.map((novel) => (
-              <div key={novel.id} className="bg-white rounded-3xl border border-gray-100 overflow-hidden flex flex-col group hover:shadow-xl transition relative">
-                <Link to={`/novel/${novel.id}`} className="h-44 bg-gray-100">
-                  {novel.cover && <img src={novel.cover} className="w-full h-full object-cover" />}
-                </Link>
-                <div className="p-6">
-                  <h3 className="font-bold text-gray-900 mb-2">{novel.title}</h3>
-                  <div className="flex gap-2 mt-4">
-                    {isOwnProfile && (
-                      <button onClick={() => setShowDeleteConfirm({ type: 'novel', id: novel.id })} className="flex-1 py-2 bg-red-50 text-red-600 rounded-xl font-bold">
-                        删除
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* 3. 问答列表 */}
+        {activeTab === 'questions' && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+            {questions.map(q => (
+              <div key={q.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex justify-between items-center hover:shadow-md transition-all">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                    Q
+                  </div>
+                  <Link to={`/question/${q.id}`} className="font-bold text-gray-900 hover:text-indigo-600">
+                    {q.title}
+                  </Link>
+                </div>
+                {isOwnProfile && (
+                  <button onClick={() => setShowDeleteConfirm({ type: 'question', id: q.id })} className="text-gray-300 hover:text-red-500 p-2 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      
-      {/* 删除确认弹窗 */}
+
+      {/* --- 删除确认弹窗 --- */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4">确认删除？</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <h3 className="text-xl font-black mb-2 text-gray-900 text-center">确认删除？</h3>
+            <p className="text-gray-500 text-center text-sm mb-8">此操作不可撤销，确认要删除吗？</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">取消</button>
-              <button onClick={showDeleteConfirm.type === 'question' ? handleDeleteQuestion : handleDeleteNovel} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">确认删除</button>
+              <button 
+                onClick={() => setShowDeleteConfirm(null)} 
+                className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleConfirmDelete} 
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-100"
+              >
+                删除
+              </button>
             </div>
           </div>
         </div>
