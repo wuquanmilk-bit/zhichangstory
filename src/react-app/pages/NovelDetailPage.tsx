@@ -46,6 +46,13 @@ export default function NovelReadingPage() {
     return () => synth.cancel();
   }, [currentPage, synth]);
 
+  // 保存阅读页码到本地存储
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem(`novel_page_${id}`, currentPage.toString());
+    }
+  }, [currentPage, id]);
+
   const novel = getNovelById(id || '');
   const paragraphsPerPage = 12; 
   const allParagraphs = useMemo(() => {
@@ -133,7 +140,9 @@ export default function NovelReadingPage() {
       {/* 顶部工具栏 */}
       <div className={`sticky top-0 z-50 border-b ${isDarkMode ? 'bg-zinc-900/90 border-zinc-800' : 'bg-white/80 border-stone-200'} backdrop-blur-lg`}>
         <div className="max-w-4xl mx-auto py-2 px-4 flex justify-between items-center">
-          <button onClick={() => navigate('/novels')} className="p-2 hover:bg-stone-100 rounded-full transition-colors"><ChevronLeft /></button>
+          <button onClick={() => navigate('/novels')} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
+            <ChevronLeft />
+          </button>
           
           <div className="flex items-center gap-2">
             <button 
@@ -160,44 +169,65 @@ export default function NovelReadingPage() {
 
             <div className="w-px h-4 bg-stone-300 mx-1" />
 
-            <button onClick={() => setFontSize(p => (p >= 26 ? 16 : p + 2))} className="p-2 text-stone-400 hover:text-stone-900"><Type size={16} /></button>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 text-stone-400 hover:text-stone-900">{isDarkMode ? <Sun size={16} /> : <Moon size={16} />}</button>
+            <button onClick={() => setFontSize(p => (p >= 26 ? 16 : p + 2))} className="p-2 text-stone-400 hover:text-stone-900">
+              <Type size={16} />
+            </button>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 text-stone-400 hover:text-stone-900">
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="max-w-2xl mx-auto px-6 py-12 w-full box-sizing: border-box">
         <header className="mb-12 text-center">
-          <h1 className="text-3xl font-serif font-black mb-4 leading-tight">{novel.title}</h1>
+          <h1 className="text-3xl font-serif font-black mb-4 leading-tight break-words whitespace-pre-wrap w-full">
+            {novel.title}
+          </h1>
           <p className="text-[10px] text-stone-400 font-bold tracking-[0.2em] uppercase">
             第 {currentPage + 1} / {totalPages} 回  |  刊印：{formatDate(novel.created_at)}
           </p>
         </header>
 
-        {/* 文章内容区域 - 增加了换行处理样式 */}
+        {/* 文章内容区域 - 严格强制换行，不撑破容器 */}
         <article 
-          className="min-h-[50vh] leading-relaxed font-serif text-justify" 
+          className="min-h-[50vh] leading-relaxed font-serif text-justify w-full box-sizing: border-box" 
           style={{ 
-            fontSize: `${fontSize}px`,
-            wordBreak: 'break-all',      // 允许在任意字符间断行
-            overflowWrap: 'break-word'   // 处理长单词或连续字符换行
-          }}
+  fontSize: `${fontSize}px`,
+  wordBreak: 'break-all',        // 强制任意字符（包括连续i）换行
+  overflowWrap: 'break-word',    // 长单词/URL拆分换行
+  whiteSpace: 'pre-wrap',        // 保留原始换行，同时自动适配容器宽度
+  maxWidth: '100%',              // 严格限制最大宽度为父容器
+  padding: 0,                    // 无额外内边距导致溢出
+  margin: '0 auto',              // 修正：值用字符串包裹，补充逗号/分号（这里用逗号，因为是对象属性）
+}}
         >
           {currentDisplayParagraphs.map((p, i) => (
-            <p key={i} className="mb-8 indent-8">{p}</p>
+            <p key={i} className="mb-8 indent-8 break-words whitespace-pre-wrap w-full">
+              {p}
+            </p>
           ))}
         </article>
 
-        <div className="mt-20 flex items-center justify-between pt-10 border-t border-stone-400/10">
+        {/* 分页按钮 */}
+        <div className="mt-20 flex items-center justify-between pt-10 border-t border-stone-400/10 w-full">
           <button 
-            onClick={() => {setCurrentPage(p => Math.max(0, p - 1)); window.scrollTo(0,0);}} 
+            onClick={() => {
+              setCurrentPage(p => Math.max(0, p - 1));
+              window.scrollTo(0,0);
+            }} 
             disabled={currentPage === 0} 
             className="px-6 py-3 border border-stone-300 rounded-xl font-bold disabled:opacity-20 hover:bg-white transition-all"
           >
             上一回
           </button>
           <button 
-            onClick={() => {if (currentPage < totalPages - 1) {setCurrentPage(p => p + 1); window.scrollTo(0,0);}}} 
+            onClick={() => {
+              if (currentPage < totalPages - 1) {
+                setCurrentPage(p => p + 1);
+                window.scrollTo(0,0);
+              }
+            }} 
             className="px-10 py-3 bg-stone-900 text-white rounded-xl font-bold shadow-xl hover:bg-blue-900 transition-all"
           >
             下一回
