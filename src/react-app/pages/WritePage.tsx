@@ -1,11 +1,12 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'; // 假设 AuthContext 路径
+import { supabase } from '../../lib/supabase'; // 假设 Supabase 客户端路径
+// 假设使用的图标组件（可根据实际库替换，如 react-icons）
 import { 
-  BookOpen, Type, Save, Image, Globe, Lock, Hash, 
-  Loader2, Send, Image as ImageIcon, Clock, AlertCircle 
+  Loader2, Clock, AlertCircle, BookOpen, Type, Hash, Globe, Lock, 
+  ImageIcon, Save, Send 
 } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
-import { useAuth } from '../../contexts/AuthContext';
 
 function WritePage() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ function WritePage() {
     { id: "scifi", name: "科幻未来", icon: "🚀", color: "from-indigo-500 to-blue-500" },
     { id: "historical", name: "历史军事", icon: "🏰", color: "from-amber-500 to-orange-500" },
   ];
+
 
   // 生成UUID的函数
   const generateId = () => {
@@ -87,7 +89,7 @@ function WritePage() {
     return () => {
       if (autoSaveTimer) clearTimeout(autoSaveTimer);
     };
-  }, [title, content]);
+  }, [title, content, user?.id, saveDraft]);
 
   // 页面离开提示
   useEffect(() => {
@@ -193,6 +195,7 @@ function WritePage() {
               .eq('id', draftData.novel_id)
               .eq('author->>id', user.id)
               .single();
+
             
             if (!novelError && novelData) {
               setIsPublic(novelData.is_public !== false);
@@ -221,9 +224,7 @@ function WritePage() {
       return null;
     }
 
-    // -----------------------------------------------------
     // 核心修改：插入封禁检测逻辑
-    // -----------------------------------------------------
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_banned')
@@ -241,7 +242,6 @@ function WritePage() {
         throw new Error('Account banned');
       }
     }
-    // -----------------------------------------------------
 
     if (!title.trim() && !content.trim()) {
       if (!isAuto) alert('请填写标题或内容');
@@ -293,6 +293,7 @@ function WritePage() {
       }
 
       setLastSaved(new Date());
+
       if (isAuto) {
         setAutoSaveCount(prev => prev + 1);
       } else {
@@ -331,9 +332,7 @@ function WritePage() {
     setError('');
 
     try {
-      // -----------------------------------------------------
       // 核心修改：插入封禁检测逻辑
-      // -----------------------------------------------------
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_banned')
@@ -343,7 +342,6 @@ function WritePage() {
       if (profile?.is_banned) {
         throw new Error('您的账号已被封禁，无法在“谷子小说”发布作品。');
       }
-      // -----------------------------------------------------
 
       // 1. 先保存草稿（无论是否编辑模式）
       let finalDraftId = currentDraftId;
@@ -503,6 +501,7 @@ function WritePage() {
           </div>
         )}
 
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 基本信息 */}
           <div className="bg-white rounded-2xl shadow-sm border p-8">
@@ -535,6 +534,7 @@ function WritePage() {
                 />
               </div>
 
+
               <div>
                 <label className="block text-lg font-medium text-gray-900 mb-4">选择分类</label>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -562,6 +562,7 @@ function WritePage() {
                 <div className="flex gap-2 mb-4">
                   <div className="flex-1 relative">
                     <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+
                     <input
                       type="text"
                       value={currentTag}
@@ -629,6 +630,7 @@ function WritePage() {
               <Type className="h-6 w-6 mr-3 text-green-600" />
               章节内容
             </h2>
+
             
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -657,6 +659,7 @@ function WritePage() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               {isEditMode ? '更新设置' : '发布设置'}
             </h2>
+
             
             <div className="space-y-8">
               {/* 可见性设置 */}
