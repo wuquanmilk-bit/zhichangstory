@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, BookOpen, Key } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, BookOpen, Key, Check } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function LoginPage() {
@@ -10,11 +10,18 @@ export default function LoginPage() {
   
   const from = location.state?.from || "/profile";
 
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  // 初始化时从localStorage读取保存的账号密码
+  const [formData, setFormData] = useState({
+    email: localStorage.getItem('savedEmail') || '',
+    password: localStorage.getItem('savedPassword') || ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // 增加记住密码状态，默认根据是否有保存的密码来判断
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('savedEmail'));
 
+  // 登录处理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -25,6 +32,14 @@ export default function LoginPage() {
       if (signInError) {
         setError("邮箱或密码不匹配");
       } else {
+        // 根据记住密码选项决定是否保存账号密码
+        if (rememberMe) {
+          localStorage.setItem('savedEmail', formData.email);
+          localStorage.setItem('savedPassword', formData.password);
+        } else {
+          localStorage.removeItem('savedEmail');
+          localStorage.removeItem('savedPassword');
+        }
         navigate(from, { replace: true });
       }
     } catch (err: any) {
@@ -96,6 +111,27 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+          </div>
+
+          {/* 新增记住密码选项 */}
+          <div className="flex items-center justify-start">
+            <button
+              type="button"
+              className={`w-5 h-5 rounded border flex items-center justify-center ${
+                rememberMe 
+                  ? 'border-blue-600 bg-blue-600 text-white' 
+                  : 'border-gray-300 text-transparent'
+              }`}
+              onClick={() => setRememberMe(!rememberMe)}
+            >
+              <Check className="h-3 w-3" />
+            </button>
+            <label 
+              className="ml-2 text-sm text-gray-600 cursor-pointer"
+              onClick={() => setRememberMe(!rememberMe)}
+            >
+              记住账号密码
+            </label>
           </div>
 
           <button

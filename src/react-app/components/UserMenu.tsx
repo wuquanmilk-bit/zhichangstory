@@ -5,7 +5,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { AVATAR_OPTIONS } from '../../constants/avatars';
 import { 
   User, LogOut, ChevronDown, Settings, Coins, Zap, 
-  CheckCircle2, ShieldCheck // 引入 ShieldCheck 图标
+  CheckCircle2, ShieldCheck, BarChart2 // 新增引入修为 图标
 } from "lucide-react";
 
 export default function UserMenu() {
@@ -29,7 +29,7 @@ export default function UserMenu() {
     if (data) setProfile(data);
   };
 
-  if (authLoading) return <div className="h-8 w-8 rounded-full bg-gray-100 animate-pulse"></div>;
+  if (authLoading) return <div className="h-8 w-8 rounded-full rounded-full bg-gray-100 animate-pulse"></div>;
 
   if (!user) {
     return (
@@ -46,7 +46,7 @@ export default function UserMenu() {
   return (
     <div className="relative">
       <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center space-x-1 group">
-        <div className="h-8 w-8 rounded-lg border border-gray-100 overflow-hidden">
+        <div className="h-8 w-8 rounded-lg border border border-gray-100 overflow-hidden">
           <img src={currentAvatar} alt="avatar" className="h-full w-full object-cover" />
         </div>
         <ChevronDown className={`h-3 w-3 text-gray-400 ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -69,6 +69,10 @@ export default function UserMenu() {
                 <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black">
                   <Coins className="h-2.5 w-2.5" /> {profile?.coins || 0}
                 </div>
+                {/* 新增修为（exp）显示 */}
+                <div className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black">
+                  <BarChart2 className="h-2.5 w-2.5" /> {profile?.exp || 0} 修为
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100">
@@ -79,7 +83,6 @@ export default function UserMenu() {
             </div>
 
             <div className="py-2 text-xs font-bold text-gray-600">
-              {/* ✅ 管理员专属入口 */}
               {isAdmin && (
                 <Link to="/system-control-gate" className="flex items-center gap-3 px-5 py-3 bg-slate-50 text-slate-900 hover:bg-slate-100 border-b border-slate-100" onClick={() => setDropdownOpen(false)}>
                   <ShieldCheck className="h-4 w-4 text-blue-600" /> 超级管理后台
