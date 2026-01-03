@@ -124,8 +124,8 @@ const AnswerItem = memo(({ answer, index }) => {
           <span>{new Date(answer.created_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
         </div>
       </div>
-      {/* 修复评论内容溢出：添加break-words类 */}
-      <p className="text-stone-600 pl-1 font-medium leading-relaxed whitespace-pre-wrap break-words">
+      {/* 回答内容 - 强制换行，不撑破容器 */}
+      <p className="text-stone-600 pl-1 font-medium leading-relaxed whitespace-pre-wrap break-words w-full">
         {answer.content}
       </p>
     </div>
@@ -215,44 +215,50 @@ function QuestionDetailPage() {
   }, [user, id]);
 
   // 点赞处理
-  const onLike = useCallback(async () => {
-    if (!question || !user || !question.stats) {
-      navigate('/login', { state: { from: location.pathname } });
-      return;
+const onLike = useCallback(async () => {
+  if (!question || !user || !question.stats) {
+    navigate('/login', { state: { from: location.pathname } });
+    return;
+  }
+  
+  try {
+    // 1. 获取当前问题的原始stats（保留阅读量、回答数等其他字段）
+    const currentStats = { ...question.stats };
+    const currentLikes = currentStats.likes || 0; // 处理点赞数为undefined的情况
+    let newLikes = currentLikes;
+
+    // 2. 点赞/取消点赞逻辑
+    if (isLiked) {
+      // 取消点赞：点赞数-1（确保不小于0）
+      newLikes = Math.max(currentLikes - 1, 0);
+    } else {
+      // 点赞：点赞数+1
+      newLikes = currentLikes + 1;
     }
+
+    // 3. 调用Supabase更新questions表的stats字段
+    const { error: updateError } = await supabase
+      .from('questions') // 操作正确的问题表
+      .update({
+        stats: { ...currentStats, likes: newLikes }, // 只更新点赞数，保留其他统计
+        updated_at: new Date().toISOString() // 可选：更新修改时间
+      })
+      .eq('id', id); // 按问题ID定位记录
+
+    if (updateError) throw updateError;
+
+    // 4. 前端状态同步（无成功提示框）
+    setIsLiked(!isLiked);
+    setStats(prev => ({ ...prev, likes: newLikes }));
+    setQuestion(prev => prev ? { ...prev, stats: { ...currentStats, likes: newLikes } } : null);
     
-    try {
-      const currentStats = { ...question.stats };
-      const currentLikes = currentStats.likes || 0;
-      let newLikes = currentLikes;
+  } catch (err: any) {
+    console.error('点赞操作失败:', err);
+    alert(`点赞操作失败：${err.message || '请稍后重试'}`);
+  }
+}, [question, user, id, isLiked, navigate, location.pathname]);
 
-      if (isLiked) {
-        newLikes = Math.max(currentLikes - 1, 0);
-      } else {
-        newLikes = currentLikes + 1;
-      }
-
-      const { error: updateError } = await supabase
-        .from('questions')
-        .update({
-          stats: { ...currentStats, likes: newLikes },
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
-
-      if (updateError) throw updateError;
-
-      setIsLiked(!isLiked);
-      setStats(prev => ({ ...prev, likes: newLikes }));
-      setQuestion(prev => prev ? { ...prev, stats: { ...currentStats, likes: newLikes } } : null);
-      
-    } catch (err: any) {
-      console.error('点赞操作失败:', err);
-      alert(`点赞操作失败：${err.message || '请稍后重试'}`);
-    }
-  }, [question, user, id, isLiked, navigate, location.pathname]);
-
-  // 提交评论
+  // 提交评论 (核心修改：添加封禁检查)
   const submitComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -265,12 +271,14 @@ function QuestionDetailPage() {
     setIsSubmitting(true);
     
     try {
+      // --- 关键插入：封禁校验 ---
       const { data: profile } = await supabase.from('profiles').select('is_banned, user_status').eq('id', user.id).single();
       if (profile?.is_banned || profile?.user_status === 'banned') {
         alert("您的账号已被封禁，无法发表评论。");
         setIsSubmitting(false);
         return;
       }
+      // ------------------------
 
       const { error } = await supabase.from('answers').insert([{
         questionid: id,
@@ -389,8 +397,11 @@ function QuestionDetailPage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-black text-stone-900 mb-6 leading-tight">{question.title}</h1>
-        <div className="text-stone-700 leading-relaxed mb-10 text-lg border-l-4 border-red-600 pl-6 py-4 bg-gradient-to-r from-red-50/20 to-orange-50/20 rounded-r-xl whitespace-pre-wrap font-medium">
+        <h1 className="text-3xl font-black text-stone-900 mb-6 leading-tight break-words whitespace-pre-wrap w-full">
+          {question.title}
+        </h1>
+        {/* 问题内容 - 强制换行 */}
+        <div className="text-stone-700 leading-relaxed mb-10 text-lg border-l-4 border-red-600 pl-6 py-4 bg-gradient-to-r from-red-50/20 to-orange-50/20 rounded-r-xl whitespace-pre-wrap break-words font-medium w-full">
           {question.content}
         </div>
 
@@ -417,16 +428,15 @@ function QuestionDetailPage() {
         </div>
       </div>
 
-      {/* 评论区 */}
+      {/* 评论区 - 输入框强制换行，限制最大高度 */}
       <form onSubmit={submitComment} className="relative mb-12">
-        {/* 修复输入框溢出：添加max-h和overflow-y-auto */}
         <textarea
           ref={commentTextareaRef}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onFocus={handleInputFocus}
           placeholder={user ? "分享您的见解，为江湖增添智慧..." : "登录后参与讨论"}
-          className="w-full min-h-[120px] max-h-[300px] overflow-y-auto p-6 bg-white/90 backdrop-blur-sm border border-white/40 rounded-2xl outline-none focus:ring-4 focus:ring-red-50 shadow-sm transition-all resize-none"
+          className="w-full min-h-[120px] max-h-[300px] overflow-y-auto p-6 bg-white/90 backdrop-blur-sm border border-white/40 rounded-2xl outline-none focus:ring-4 focus:ring-red-50 shadow-sm transition-all resize-none break-words whitespace-pre-wrap"
           disabled={!user}
         />
         <div className="flex items-center justify-between mt-4">
