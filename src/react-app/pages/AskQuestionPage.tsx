@@ -220,6 +220,30 @@ function AskQuestionPage() {
       return;
     }
     
+    // 检查用户是否被封禁
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_banned, ban_reason')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error('检查用户状态失败', profileError);
+      }
+
+      if (profile?.is_banned) {
+        const banReason = profile.ban_reason || '未指定原因';
+        throw new Error(`您的账号已被封禁，无法发布或编辑问题。原因：${banReason}`);
+      }
+    } catch (error) {
+      console.error('检查用户封禁状态时出错:', error);
+      setError(error.message || '验证账号状态时出错，请稍后再试');
+      setLoading(false);
+      isSubmitting.current = false;
+      return;
+    }
+    
     if (!title.trim()) {
       setError('请填写问题标题');
       titleInputRef.current?.focus();
@@ -237,25 +261,6 @@ function AskQuestionPage() {
     setSuccess(false);
 
     try {
-      // -----------------------------------------------------
-      // 核心修改：在此处插入封禁检测逻辑
-      // -----------------------------------------------------
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_banned')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        // 如果查不到profile可能是网络问题，暂时允许或根据需要报错
-        console.error('检查用户状态失败', profileError);
-      }
-
-      if (profile?.is_banned) {
-        throw new Error('您的账号已被封禁，无法在“谷子小说”发布或编辑问题。');
-      }
-      // -----------------------------------------------------
-
       let result;
       
       if (isEditMode && questionId) {
@@ -504,7 +509,7 @@ function AskQuestionPage() {
           <XCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-medium">提交失败</p>
-            <p className="text-sm mt-1 break-words">{error}</p>
+            <p className="text-sm mt-1 break-words whitespace-pre-wrap">{error}</p>
             <button
               onClick={() => setError('')}
               className="mt-2 text-sm underline hover:text-red-800 transition-colors"
@@ -516,7 +521,7 @@ function AskQuestionPage() {
       )}
 
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        {/* 标题输入 */}
+        {/* 标题输入 - 强制换行，不撑破容器 */}
         <div className="bg-white rounded-xl border p-4 sm:p-6 transition-all duration-200 hover:border-blue-300 focus-within:border-blue-500 focus-within:shadow-sm">
           <label className="block text-lg font-medium text-gray-900 mb-3">
             问题标题
@@ -528,7 +533,7 @@ function AskQuestionPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="请简要描述您的问题，如：React组件如何实现数据绑定？"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg transition-all placeholder:text-gray-400"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg transition-all placeholder:text-gray-400 break-words whitespace-pre-wrap"
             required
             disabled={loading}
             maxLength={200}
@@ -540,7 +545,7 @@ function AskQuestionPage() {
           </div>
         </div>
 
-        {/* 内容输入 */}
+        {/* 内容输入 - 强制换行，限制最大高度，滚动显示 */}
         <div className="bg-white rounded-xl border p-4 sm:p-6 transition-all duration-200 hover:border-blue-300 focus-within:border-blue-500 focus-within:shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <label className="block text-lg font-medium text-gray-900">
@@ -559,7 +564,7 @@ function AskQuestionPage() {
             onChange={(e) => setContent(e.target.value)}
             placeholder="请详细描述您的问题背景、遇到的困难、尝试过的解决方案等。清晰的描述有助于获得更准确的回答。"
             rows={8}
-            className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y transition-all placeholder:text-gray-400 text-base"
+            className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y transition-all placeholder:text-gray-400 text-base break-words whitespace-pre-wrap max-h-[500px] overflow-y-auto"
             required
             disabled={loading}
             maxLength={2000}
@@ -574,7 +579,7 @@ function AskQuestionPage() {
           </div>
         </div>
 
-        {/* 标签输入 */}
+        {/* 标签输入 - 强制换行 */}
         <div className="bg-white rounded-xl border p-4 sm:p-6 transition-all duration-200 hover:border-blue-300 focus-within:border-blue-500 focus-within:shadow-sm">
           <label className="block text-lg font-medium text-gray-900 mb-3">
             添加标签
@@ -590,7 +595,7 @@ function AskQuestionPage() {
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={handleTagKeyPress}
                 placeholder="输入标签，按Enter添加"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all placeholder:text-gray-400 break-words whitespace-pre-wrap"
                 disabled={loading || tags.length >= 5}
                 maxLength={20}
               />
@@ -640,19 +645,19 @@ function AskQuestionPage() {
               <ul className="text-sm text-blue-700 space-y-1.5">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
-                  <span>在提问前，先搜索是否已有类似问题，避免重复</span>
+                  <span className="break-words whitespace-pre-wrap">在提问前，先搜索是否已有类似问题，避免重复</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
-                  <span>详细描述问题背景和您尝试过的解决方案</span>
+                  <span className="break-words whitespace-pre-wrap">详细描述问题背景和您尝试过的解决方案</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
-                  <span>使用明确的标签有助于获得更准确的回答</span>
+                  <span className="break-words whitespace-pre-wrap">使用明确的标签有助于获得更准确的回答</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
-                  <span>如果包含代码，请使用代码块格式，方便他人阅读</span>
+                  <span className="break-words whitespace-pre-wrap">如果包含代码，请使用代码块格式，方便他人阅读</span>
                 </li>
               </ul>
             </div>
