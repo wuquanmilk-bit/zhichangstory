@@ -486,6 +486,7 @@ const handleMouseDown = (index: number, itemId: string) => {
   setDragSelecting(true);
   setDragStartIndex(index);
   setDragEndIndex(index);
+e.stopPropagation(); // 阻止事件冒泡
   
   // 初始化拖拽选择
   setDragSelectedIds([itemId]);
