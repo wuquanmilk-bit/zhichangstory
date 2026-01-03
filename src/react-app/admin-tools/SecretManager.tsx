@@ -517,82 +517,85 @@ const SecretManager = () => {
   const addLog = (msg: string) => setToolLog(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
 
   const handlePublishQuestion = async () => {
-    if (!targetUser) return alert('请先在用户管理选择一个用户！');
-    setLoading(true);
-    try {
-      const count = toolMode === 'custom' ? 1 : batchCount;
-      const baseTitle = customTitle || "自动生成问题";
+  if (!targetUser) return alert('请先在用户管理选择一个用户！');
+  setLoading(true);
+  try {
+    const count = toolMode === 'custom' ? 1 : batchCount;
+    const baseTitle = customTitle || "自动生成问题";
+    
+    for (let i = 0; i < count; i++) {
+      // 移除标题中的编号
+      const title = baseTitle; // 直接使用标题，不添加编号
+      const content = customContent || `这是自动生成的问题内容`; // 使用输入的内容或默认内容
       
-      for (let i = 0; i < count; i++) {
-        const title = toolMode === 'custom' ? customTitle : `${baseTitle} #${Date.now()}_${i}`;
-        const content = toolMode === 'custom' ? customContent : `批量测试内容 ${Math.random()}`;
-        
-        await supabase.from(TABLE.QUESTIONS).insert([{
-          title, 
-          content, 
-          user_id: targetUser.id,
-          created_at: new Date().toISOString()
-        }]);
-        addLog(`✅ 发布问题: ${title}`);
-      }
-      // 如果当前在用户的问题标签页，刷新内容
-      if (targetUser && activeTab === 'questions') {
-        loadUserContent(targetUser.id);
-      }
-    } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
-  };
+      await supabase.from(TABLE.QUESTIONS).insert([{
+        title, 
+        content, 
+        user_id: targetUser.id,
+        created_at: new Date().toISOString()
+      }]);
+      addLog(`✅ 发布问题: ${title}`);
+    }
+    // 如果当前在用户的问题标签页，刷新内容
+    if (targetUser && activeTab === 'questions') {
+      loadUserContent(targetUser.id);
+    }
+  } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
+};
 
   const handlePublishNovel = async () => {
-    if (!targetUser) return alert('请先选择用户！');
-    setLoading(true);
-    try {
-      const count = toolMode === 'custom' ? 1 : batchCount;
-      const baseTitle = customTitle || "自动生成小说";
+  if (!targetUser) return alert('请先选择用户！');
+  setLoading(true);
+  try {
+    const count = toolMode === 'custom' ? 1 : batchCount;
+    const baseTitle = customTitle || "自动生成小说";
+    
+    for (let i = 0; i < count; i++) {
+      const title = baseTitle; // 直接使用标题，不添加 "Vol.${i}"
       
-      for (let i = 0; i < count; i++) {
-        const title = toolMode === 'custom' ? customTitle : `${baseTitle} Vol.${i}`;
-        
-        // 适配 novels 表字段
-        await supabase.from(TABLE.NOVELS).insert([{
-          title,
-          description: customContent || '自动生成的简介...',
-          category: customCategory,
-          user_id: targetUser.id,
-          is_public: true,
-          created_at: new Date().toISOString()
-        }]);
-        addLog(`✅ 发布小说: ${title}`);
-      }
-      // 如果当前在用户的小说标签页，刷新内容
-      if (targetUser && activeTab === 'novels') {
-        loadUserContent(targetUser.id);
-      }
-    } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
-  };
+      // 适配 novels 表字段
+      await supabase.from(TABLE.NOVELS).insert([{
+        title,
+        description: customContent || '自动生成的简介...',
+        category: customCategory,
+        user_id: targetUser.id,
+        is_public: true,
+        created_at: new Date().toISOString()
+      }]);
+      addLog(`✅ 发布小说: ${title}`);
+    }
+    // 如果当前在用户的小说标签页，刷新内容
+    if (targetUser && activeTab === 'novels') {
+      loadUserContent(targetUser.id);
+    }
+  } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
+};
 
   const handleAutoComment = async () => {
-    if (!targetUser) return alert('请先选择用户！');
-    setLoading(true);
-    try {
-      const { data: qList } = await supabase.from(TABLE.QUESTIONS).select('id, title').limit(20);
-      if (!qList?.length) throw new Error('没有可评论的问题');
+  if (!targetUser) return alert('请先选择用户！');
+  setLoading(true);
+  try {
+    const { data: qList } = await supabase.from(TABLE.QUESTIONS).select('id, title').limit(20);
+    if (!qList?.length) throw new Error('没有可评论的问题');
 
-      const count = toolMode === 'custom' ? 1 : batchCount;
-      for (let i = 0; i < count; i++) {
-        const q = qList[Math.floor(Math.random() * qList.length)];
-        const content = toolMode === 'custom' ? customContent : `很有意思的观点！ #${i}`;
-        
-        // 适配 answers 表：外键是 questionid (全小写)
-        await supabase.from(TABLE.ANSWERS).insert([{
-          questionid: q.id, 
-          content,
-          user_id: targetUser.id,
-          created_at: new Date().toISOString()
-        }]);
-        addLog(`💬 评论问题 [${q.title.slice(0,10)}]: ${content}`);
-      }
-    } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
-  };
+    const count = toolMode === 'custom' ? 1 : batchCount;
+    for (let i = 0; i < count; i++) {
+      const q = qList[Math.floor(Math.random() * qList.length)];
+      // 移除内容中的编号，直接使用输入的内容或固定内容
+      const content = toolMode === 'custom' ? customContent : `很有意思的观点！`;
+      
+      // 适配 answers 表：外键是 questionid (全小写)
+      await supabase.from(TABLE.ANSWERS).insert([{
+        questionid: q.id, 
+        content,
+        user_id: targetUser.id,
+        created_at: new Date().toISOString()
+      }]);
+      // 在日志中移除编号的显示
+      addLog(`💬 评论问题 [${q.title.slice(0,10)}]: ${content}`);
+    }
+  } catch (e: any) { addLog(`❌ 失败: ${e.message}`); } finally { setLoading(false); }
+};
 
   // ======================================
   // 界面渲染
