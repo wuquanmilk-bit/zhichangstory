@@ -107,7 +107,7 @@ const SecretManager = () => {
   const [loading, setLoading] = useState(false);
 
   // --- 用户管理 ---
-  const [activeTab, setActiveTab] = useState<'coins' | 'punish' | 'history' | 'questions' | 'novels' | 'exp'>('coins'); 
+  const [activeTab, setActiveTab] = useState<'coins' | 'punish' | 'history' | 'questions' | 'answers' | 'novels' | 'exp'>('coins'); 
   const [users, setUsers] = useState<Profile[]>([]);
   const [targetUser, setTargetUser] = useState<Profile | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -131,6 +131,7 @@ const SecretManager = () => {
   const [coinLogs, setCoinLogs] = useState<any[]>([]);
   const [userQuestions, setUserQuestions] = useState<any[]>([]);
   const [userNovels, setUserNovels] = useState<any[]>([]);
+  const [userAnswers, setUserAnswers] = useState<any[]>([]); // 新增评论状态
   const [contentLoading, setContentLoading] = useState(false);
 
   // --- 内容监控 ---
@@ -201,7 +202,7 @@ const SecretManager = () => {
     loadUserContent(user.id); // 加载用户发布的内容
   };
 
-  // 加载用户发布的问题和小说
+  // 加载用户发布的问题、小说和评论
   const loadUserContent = async (userId: string) => {
     setContentLoading(true);
     try {
@@ -219,8 +220,16 @@ const SecretManager = () => {
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
+      // 新增：加载用户的评论
+      const { data: answers } = await supabase
+        .from(TABLE.ANSWERS)
+        .select('*, question:questionid(title)') // 关联查询问题标题
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
       setUserQuestions(questions || []);
       setUserNovels(novels || []);
+      setUserAnswers(answers || []); // 保存评论数据
     } catch (e) { 
       console.error('加载用户内容失败:', e); 
     } finally {
@@ -437,7 +446,9 @@ const SecretManager = () => {
     try {
       // 确定要删除的内容类型
       const targetTable = isUserContent 
-        ? (activeTab === 'questions' ? TABLE.QUESTIONS : TABLE.NOVELS)
+        ? (activeTab === 'questions' ? TABLE.QUESTIONS : 
+           activeTab === 'answers' ? TABLE.ANSWERS :  // 新增评论表判断
+           TABLE.NOVELS)
         : contentTab;
       
       await supabase.from(targetTable).delete().eq('id', id);
@@ -446,6 +457,8 @@ const SecretManager = () => {
       if (isUserContent) {
         if (activeTab === 'questions') {
           setUserQuestions(prev => prev.filter(item => item.id !== id));
+        } else if (activeTab === 'answers') {  // 新增评论列表更新
+          setUserAnswers(prev => prev.filter(item => item.id !== id));
         } else {
           setUserNovels(prev => prev.filter(item => item.id !== id));
         }
@@ -658,16 +671,17 @@ const SecretManager = () => {
                 </div>
 
                 <div className="flex gap-4 border-b">
-                  {['coins', 'punish', 'history', 'questions', 'novels', 'exp'].map(tab => (
+                  {['coins', 'punish', 'history', 'questions', 'answers', 'novels', 'exp'].map(tab => (
                     <button 
                       key={tab} 
-                      onClick={() => setActiveTab(tab as 'coins' | 'punish' | 'history' | 'questions' | 'novels' | 'exp')} 
+                      onClick={() => setActiveTab(tab as 'coins' | 'punish' | 'history' | 'questions' | 'answers' | 'novels' | 'exp')} 
                       className={`pb-2 text-sm font-bold ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
                     >
                       {tab === 'coins' ? '金币管理' : 
                        tab === 'punish' ? '账号管控' : 
                        tab === 'history' ? '流水记录' :
                        tab === 'questions' ? '发布的问题' : 
+                       tab === 'answers' ? '发布的评论' : 
                        tab === 'novels' ? '发布的小说' :
                        tab === 'exp' ? '经验与身份管理' : ''}
                     </button>
@@ -758,6 +772,51 @@ const SecretManager = () => {
                   </div>
                 )}
 
+                {/* 用户发布的评论 */}
+                {activeTab === 'answers' && (
+                  <div className="pt-4">
+                    {contentLoading ? (
+                      <div>加载中...</div>
+                    ) : userAnswers.length === 0 ? (
+                      <div className="text-gray-500 text-center py-4">该用户未发布任何评论</div>
+                    ) : (
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-50 text-xs text-gray-500">
+                          <tr>
+                            <th className="p-3">问题</th>
+                            <th className="p-3">评论内容</th>
+                            <th className="p-3">时间</th>
+                            <th className="p-3">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {userAnswers.map(d => (
+                            <tr key={d.id} className="border-b hover:bg-gray-50">
+                              <td className="p-3 truncate max-w-xs text-blue-600">
+                                {d.question?.title || '已删除的问题'}
+                              </td>
+                              <td className="p-3 truncate max-w-md text-gray-500">
+                                {d.content?.substring(0, 50)}...
+                              </td>
+                              <td className="p-3 text-xs text-gray-400">
+                                {new Date(d.created_at).toLocaleString()}
+                              </td>
+                              <td className="p-3">
+                                <button 
+                                  onClick={() => handleDeleteContent(d.id, true)} 
+                                  className="text-red-500"
+                                >
+                                  <Trash2 size={16}/>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+
                 {/* 用户发布的小说 */}
                 {activeTab === 'novels' && (
                   <div className="pt-4">
@@ -825,45 +884,45 @@ const SecretManager = () => {
                       </div>
                     </div>
 
-                    {/* 身份管理区域 */}
+                    {/* 身份认证管理 */}
                     <div className="border p-4 rounded-lg">
                       <h3 className="text-sm font-bold mb-3">身份认证管理</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <button 
                           onClick={() => handleToggleIdentity('blueV')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isBlueV ? 'bg-gray-200 text-gray-600' : 'bg-indigo-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isBlueV ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isBlueV ? '取消蓝V认证' : '授予蓝V认证'}
+                          <BadgeCheck size={16} /> 蓝V认证 {isBlueV ? '✓' : '×'}
                         </button>
                         <button 
                           onClick={() => handleToggleIdentity('contract')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isContractAuthor ? 'bg-gray-200 text-gray-600' : 'bg-purple-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isContractAuthor ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isContractAuthor ? '取消签约作家' : '授予签约作家'}
+                          <Award size={16} /> 签约作家 {isContractAuthor ? '✓' : '×'}
                         </button>
                         <button 
                           onClick={() => handleToggleIdentity('vip')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isVIP ? 'bg-gray-200 text-gray-600' : 'bg-amber-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isVIP ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isVIP ? '取消VIP会员' : '授予VIP会员'}
+                          <Crown size={16} /> VIP会员 {isVIP ? '✓' : '×'}
                         </button>
                         <button 
                           onClick={() => handleToggleIdentity('verified')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isVerified ? 'bg-gray-200 text-gray-600' : 'bg-pink-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isVerified ? 'bg-purple-50 border-purple-200 text-purple-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isVerified ? '取消实名认证' : '授予实名认证'}
+                          <CheckCircle2 size={16} /> 实名认证 {isVerified ? '✓' : '×'}
                         </button>
                         <button 
                           onClick={() => handleToggleIdentity('author')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isAuthor ? 'bg-gray-200 text-gray-600' : 'bg-green-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isAuthor ? 'bg-green-50 border-green-200 text-green-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isAuthor ? '取消认证作者' : '授予认证作者'}
+                          <UserCog size={16} /> 认证作者 {isAuthor ? '✓' : '×'}
                         </button>
                         <button 
                           onClick={() => handleToggleIdentity('moderator')}
-                          className={`px-4 py-2 rounded-lg text-sm ${isModerator ? 'bg-gray-200 text-gray-600' : 'bg-indigo-600 text-white'}`}
+                          className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${isModerator ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          {isModerator ? '取消社区版主' : '授予社区版主'}
+                          <Shield size={16} /> 社区版主 {isModerator ? '✓' : '×'}
                         </button>
                       </div>
                     </div>
@@ -877,103 +936,250 @@ const SecretManager = () => {
 
       {/* ----------------- 模块 2: 内容监控 ----------------- */}
       {mainTab === 'content' && (
-        <div className="bg-white rounded-2xl shadow-sm border p-4">
-           <div className="flex justify-between items-center border-b mb-4 pb-4">
-             <div className="flex border-b">
-               {['questions', 'answers', 'novels'].map((t: any) => (
-                 <button key={t} onClick={() => setContentTab(t)} className={`px-4 py-2 ${contentTab === t ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
-                   {t.toUpperCase()}
-                 </button>
-               ))}
-             </div>
-             {/* 批量删除按钮 */}
-             {selectedContentIds.length > 0 && (
-               <button 
-                 onClick={handleBatchDelete} 
-                 className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
-               >
-                 批量删除 ({selectedContentIds.length})
-               </button>
-             )}
-           </div>
-           {allContentLoading ? <div>加载中...</div> : (
-             <table className="w-full text-sm text-left">
-               <thead className="bg-gray-50 text-xs text-gray-500">
-                 <tr>
-                   <th className="p-3 w-10">
-                     <input 
-                       type="checkbox" 
-                       checked={selectAll && allContentData.length > 0} 
-                       onChange={handleSelectAll}
-                       className="rounded"
-                     />
-                   </th>
-                   <th className="p-3">内容/标题</th>
-                   <th className="p-3">作者</th>
-                   <th className="p-3">时间</th>
-                   <th className="p-3">操作</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {allContentData.map(d => (
-                   <tr key={d.id} className="border-b hover:bg-gray-50">
-                     <td className="p-3">
-                       <input 
-                         type="checkbox" 
-                         checked={selectedContentIds.includes(d.id)} 
-                         onChange={() => handleSelectContent(d.id)}
-                         className="rounded"
-                       />
-                     </td>
-                     <td className="p-3 truncate max-w-xs">{d.title || d.content}</td>
-                     <td className="p-3 text-gray-500">{d.author?.username || d.author?.email || '未知'}</td>
-                     <td className="p-3 text-xs text-gray-400">{new Date(d.created_at).toLocaleDateString()}</td>
-                     <td className="p-3">
-                       <button onClick={() => handleDeleteContent(d.id)} className="text-red-500">
-                         <Trash2 size={16}/>
-                       </button>
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-           )}
+        <div className="bg-white rounded-2xl shadow-sm border p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <LayoutGrid size={18} /> 内容监控
+            </h2>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setContentTab('questions')} 
+                className={`px-3 py-1 text-sm rounded ${contentTab === 'questions' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+              >
+                <FileText size={14} className="inline mr-1" /> 问题
+              </button>
+              <button 
+                onClick={() => setContentTab('answers')} 
+                className={`px-3 py-1 text-sm rounded ${contentTab === 'answers' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+              >
+                <MessageCircle size={14} className="inline mr-1" /> 评论
+              </button>
+              <button 
+                onClick={() => setContentTab('novels')} 
+                className={`px-3 py-1 text-sm rounded ${contentTab === 'novels' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+              >
+                <BookOpen size={14} className="inline mr-1" /> 小说
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4 flex justify-between items-center">
+            <button onClick={loadAllContent} className="text-sm text-blue-600 flex items-center gap-1">
+              <Sparkles size={14} /> 刷新内容
+            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={handleSelectAll}
+                className="text-xs border px-2 py-1 rounded"
+              >
+                {selectAll ? '取消全选' : '全选'} ({allContentData.length})
+              </button>
+              <button 
+                onClick={handleBatchDelete}
+                className="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded"
+              >
+                <Trash2 size={14} className="inline mr-1" /> 批量删除 ({selectedContentIds.length})
+              </button>
+            </div>
+          </div>
+
+          {allContentLoading ? (
+            <div className="text-center py-8 text-gray-400">加载中...</div>
+          ) : allContentData.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">没有找到内容</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-xs text-gray-500">
+                <tr>
+                  <th className="p-2 w-10"><input type="checkbox" checked={selectAll} onChange={handleSelectAll} /></th>
+                  {contentTab === 'questions' && (
+                    <>
+                      <th className="p-2">标题</th>
+                      <th className="p-2">作者</th>
+                      <th className="p-2">时间</th>
+                      <th className="p-2">操作</th>
+                    </>
+                  )}
+                  {contentTab === 'answers' && (
+                    <>
+                      <th className="p-2">问题</th>
+                      <th className="p-2">评论内容</th>
+                      <th className="p-2">作者</th>
+                      <th className="p-2">时间</th>
+                      <th className="p-2">操作</th>
+                    </>
+                  )}
+                  {contentTab === 'novels' && (
+                    <>
+                      <th className="p-2">标题</th>
+                      <th className="p-2">分类</th>
+                      <th className="p-2">作者</th>
+                      <th className="p-2">时间</th>
+                      <th className="p-2">操作</th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {allContentData.map(item => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                    <td className="p-2"><input type="checkbox" checked={selectedContentIds.includes(item.id)} onChange={() => handleSelectContent(item.id)} /></td>
+                    
+                    {contentTab === 'questions' && (
+                      <>
+                        <td className="p-2 truncate max-w-md">{item.title}</td>
+                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                        <td className="p-2">
+                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </>
+                    )}
+                    
+                    {contentTab === 'answers' && (
+                      <>
+                        <td className="p-2 truncate max-w-xs text-blue-600">{item.question?.title || '已删除的问题'}</td>
+                        <td className="p-2 truncate max-w-md text-gray-500">{item.content?.substring(0, 50)}...</td>
+                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                        <td className="p-2">
+                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </>
+                    )}
+                    
+                    {contentTab === 'novels' && (
+                      <>
+                        <td className="p-2 truncate max-w-md">{item.title}</td>
+                        <td className="p-2 text-gray-500">{item.category}</td>
+                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                        <td className="p-2">
+                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
       {/* ----------------- 模块 3: 批量工具 ----------------- */}
       {mainTab === 'tools' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           <div className="bg-white p-6 rounded-2xl shadow-sm border">
-              <div className={`p-3 rounded mb-4 text-sm ${targetUser ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
-                当前执行者: {targetUser ? targetUser.username : '未选择 (请去用户管理选择)'}
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex bg-gray-100 p-1 rounded">
-                  <button onClick={() => setToolMode('custom')} className={`flex-1 py-1 rounded ${toolMode === 'custom' ? 'bg-white shadow' : ''}`}>自定义</button>
-                  <button onClick={() => setToolMode('batch')} className={`flex-1 py-1 rounded ${toolMode === 'batch' ? 'bg-white shadow' : ''}`}>批量生成</button>
+          <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
+              <Terminal size={18} /> 批量操作工具
+            </h2>
+            
+            <div className="space-y-6">
+              <div>
+                <div className="flex gap-2 mb-3">
+                  <button onClick={() => setToolMode('custom')} className={`flex-1 py-2 text-sm rounded ${toolMode === 'custom' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100'}`}>自定义内容</button>
+                  <button onClick={() => setToolMode('batch')} className={`flex-1 py-2 text-sm rounded ${toolMode === 'batch' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100'}`}>批量生成</button>
                 </div>
-
-                <input type="text" placeholder="标题 / 前缀" value={customTitle} onChange={e => setCustomTitle(e.target.value)} className="w-full border p-2 rounded" />
-                <textarea placeholder="内容 / 简介" value={customContent} onChange={e => setCustomContent(e.target.value)} className="w-full border p-2 rounded" rows={3} />
                 
                 {toolMode === 'batch' && (
-                   <div className="flex items-center gap-2">
-                     <span className="text-sm">数量: {batchCount}</span>
-                     <input type="range" min="1" max="20" value={batchCount} onChange={e => setBatchCount(Number(e.target.value))} className="flex-1" />
-                   </div>
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-500 block mb-1">生成数量</label>
+                    <input 
+                      type="number" 
+                      value={batchCount} 
+                      onChange={e => setBatchCount(Number(e.target.value))} 
+                      min="1" max="20" 
+                      className="w-full border p-2 rounded-lg text-sm"
+                    />
+                  </div>
                 )}
-
-                <button onClick={handlePublishQuestion} disabled={loading} className="w-full py-2 bg-blue-600 text-white rounded flex justify-center items-center gap-2"><FileText size={16}/> 发布提问</button>
-                <button onClick={handlePublishNovel} disabled={loading} className="w-full py-2 bg-purple-600 text-white rounded flex justify-center items-center gap-2"><BookOpen size={16}/> 发布小说</button>
-                <button onClick={handleAutoComment} disabled={loading} className="w-full py-2 bg-green-600 text-white rounded flex justify-center items-center gap-2"><MessageCircle size={16}/> 发送回答</button>
+                
+                <div className="mb-3">
+                  <label className="text-xs text-gray-500 block mb-1">标题</label>
+                  <input 
+                    type="text" 
+                    value={customTitle} 
+                    onChange={e => setCustomTitle(e.target.value)} 
+                    placeholder={toolMode === 'custom' ? '输入内容标题' : '批量标题前缀'}
+                    className="w-full border p-2 rounded-lg text-sm"
+                  />
+                </div>
+                
+                {contentTab === 'novels' && (
+                  <div className="mb-3">
+                    <label className="text-xs text-gray-500 block mb-1">分类</label>
+                    <select 
+                      value={customCategory} 
+                      onChange={e => setCustomCategory(e.target.value)}
+                      className="w-full border p-2 rounded-lg text-sm"
+                    >
+                      <option value="fantasy">奇幻</option>
+                      <option value="sci-fi">科幻</option>
+                      <option value="romance">言情</option>
+                      <option value="mystery">悬疑</option>
+                      <option value="history">历史</option>
+                    </select>
+                  </div>
+                )}
+                
+                <div className="mb-3">
+                  <label className="text-xs text-gray-500 block mb-1">内容</label>
+                  <textarea 
+                    value={customContent} 
+                    onChange={e => setCustomContent(e.target.value)} 
+                    placeholder={toolMode === 'custom' ? '输入内容详情' : '批量内容模板'}
+                    className="w-full border p-2 rounded-lg text-sm h-24"
+                  />
+                </div>
               </div>
-           </div>
-           
-           <div className="lg:col-span-2 bg-gray-900 rounded-2xl p-4 text-green-400 font-mono text-xs overflow-y-auto h-[500px]">
-             {toolLog.map((log, i) => <div key={i} className="border-b border-gray-800 py-1">{log}</div>)}
-           </div>
+              
+              <div className="space-y-2">
+                <button 
+                  onClick={handlePublishQuestion}
+                  className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center justify-center gap-2"
+                >
+                  <FileText size={16} /> 发布问题
+                </button>
+                
+                <button 
+                  onClick={handleAutoComment}
+                  className="w-full py-2 bg-green-600 text-white rounded-lg text-sm flex items-center justify-center gap-2"
+                >
+                  <MessageCircle size={16} /> 发布评论
+                </button>
+                
+                <button 
+                  onClick={handlePublishNovel}
+                  className="w-full py-2 bg-purple-600 text-white rounded-lg text-sm flex items-center justify-center gap-2"
+                >
+                  <BookOpen size={16} /> 发布小说
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border p-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
+              <Terminal size={18} /> 操作日志
+            </h2>
+            
+            <div className="h-[calc(100vh-140px)] overflow-y-auto bg-gray-50 p-4 rounded-lg font-mono text-xs">
+              {toolLog.length === 0 ? (
+                <div className="text-gray-400 italic">没有操作记录</div>
+              ) : (
+                toolLog.map((log, i) => (
+                  <div key={i} className="py-1 border-b border-gray-100">{log}</div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
