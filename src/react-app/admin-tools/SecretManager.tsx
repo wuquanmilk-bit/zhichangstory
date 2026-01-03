@@ -105,7 +105,11 @@ const SecretManager = () => {
   // ======================================
   const [mainTab, setMainTab] = useState<'users' | 'content' | 'tools'>('users');
   const [loading, setLoading] = useState(false);
-
+  // --- 拖拽选择功能 ---
+  const [dragSelecting, setDragSelecting] = useState(false);
+  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
+  const [dragEndIndex, setDragEndIndex] = useState<number | null>(null);
+  const [dragSelectedIds, setDragSelectedIds] = useState<string[]>([]);
   // --- 用户管理 ---
   const [activeTab, setActiveTab] = useState<'coins' | 'punish' | 'history' | 'questions' | 'answers' | 'novels' | 'exp'>('coins'); 
   const [users, setUsers] = useState<Profile[]>([]);
@@ -477,7 +481,44 @@ const SecretManager = () => {
         : [...prev, id]
     );
   };
+// 拖拽选择相关函数
+const handleMouseDown = (index: number, itemId: string) => {
+  setDragSelecting(true);
+  setDragStartIndex(index);
+  setDragEndIndex(index);
+  
+  // 初始化拖拽选择
+  setDragSelectedIds([itemId]);
+  handleSelectContent(itemId);
+};
 
+const handleMouseEnter = (index: number, itemId: string) => {
+  if (dragSelecting && dragStartIndex !== null) {
+    setDragEndIndex(index);
+    
+    // 获取开始和结束的索引范围
+    const start = Math.min(dragStartIndex, index);
+    const end = Math.max(dragStartIndex, index);
+    const newSelectedIds = new Set(selectedContentIds);
+    
+    // 添加范围内的所有项目
+    for (let i = start; i <= end; i++) {
+      const item = allContentData[i];
+      if (item) {
+        newSelectedIds.add(item.id);
+      }
+    }
+    
+    setSelectedContentIds(Array.from(newSelectedIds));
+  }
+};
+
+const handleMouseUp = () => {
+  setDragSelecting(false);
+  setDragStartIndex(null);
+  setDragEndIndex(null);
+  setDragSelectedIds([]);
+};
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedContentIds([]);
@@ -937,144 +978,170 @@ const SecretManager = () => {
         </div>
       )}
 
-      {/* ----------------- 模块 2: 内容监控 ----------------- */}
-      {mainTab === 'content' && (
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <LayoutGrid size={18} /> 内容监控
-            </h2>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setContentTab('questions')} 
-                className={`px-3 py-1 text-sm rounded ${contentTab === 'questions' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
-              >
-                <FileText size={14} className="inline mr-1" /> 问题
-              </button>
-              <button 
-                onClick={() => setContentTab('answers')} 
-                className={`px-3 py-1 text-sm rounded ${contentTab === 'answers' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
-              >
-                <MessageCircle size={14} className="inline mr-1" /> 评论
-              </button>
-              <button 
-                onClick={() => setContentTab('novels')} 
-                className={`px-3 py-1 text-sm rounded ${contentTab === 'novels' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
-              >
-                <BookOpen size={14} className="inline mr-1" /> 小说
-              </button>
-            </div>
-          </div>
+{/* ----------------- 模块 2: 内容监控 ----------------- */}
+{mainTab === 'content' && (
+  <div className="bg-white rounded-2xl shadow-sm border p-6">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-xl font-bold flex items-center gap-2">
+        <LayoutGrid size={18} /> 内容监控
+      </h2>
+      <div className="flex gap-2">
+        <button 
+          onClick={() => setContentTab('questions')} 
+          className={`px-3 py-1 text-sm rounded ${contentTab === 'questions' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+        >
+          <FileText size={14} className="inline mr-1" /> 问题
+        </button>
+        <button 
+          onClick={() => setContentTab('answers')} 
+          className={`px-3 py-1 text-sm rounded ${contentTab === 'answers' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+        >
+          <MessageCircle size={14} className="inline mr-1" /> 评论
+        </button>
+        <button 
+          onClick={() => setContentTab('novels')} 
+          className={`px-3 py-1 text-sm rounded ${contentTab === 'novels' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100'}`}
+        >
+          <BookOpen size={14} className="inline mr-1" /> 小说
+        </button>
+      </div>
+    </div>
 
-          <div className="mb-4 flex justify-between items-center">
-            <button onClick={loadAllContent} className="text-sm text-blue-600 flex items-center gap-1">
-              <Sparkles size={14} /> 刷新内容
-            </button>
-            <div className="flex gap-2">
-              <button 
-                onClick={handleSelectAll}
-                className="text-xs border px-2 py-1 rounded"
-              >
-                {selectAll ? '取消全选' : '全选'} ({allContentData.length})
-              </button>
-              <button 
-                onClick={handleBatchDelete}
-                className="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded"
-              >
-                <Trash2 size={14} className="inline mr-1" /> 批量删除 ({selectedContentIds.length})
-              </button>
-            </div>
-          </div>
+    <div className="mb-4 flex justify-between items-center">
+      <div className="text-sm text-gray-600">
+        提示：按住鼠标左键拖拽可选择多行，点击复选框切换选择状态
+      </div>
+      <div className="flex gap-2">
+        <button 
+          onClick={handleSelectAll}
+          className="text-xs border px-2 py-1 rounded hover:bg-gray-100"
+        >
+          {selectAll ? '取消全选' : '全选'} ({allContentData.length})
+        </button>
+        <button 
+          onClick={handleBatchDelete}
+          disabled={selectedContentIds.length === 0}
+          className={`text-xs border px-2 py-1 rounded ${selectedContentIds.length > 0 ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+        >
+          <Trash2 size={14} className="inline mr-1" /> 批量删除 ({selectedContentIds.length})
+        </button>
+      </div>
+    </div>
 
-          {allContentLoading ? (
-            <div className="text-center py-8 text-gray-400">加载中...</div>
-          ) : allContentData.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">没有找到内容</div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs text-gray-500">
-                <tr>
-                  <th className="p-2 w-10"><input type="checkbox" checked={selectAll} onChange={handleSelectAll} /></th>
-                  {contentTab === 'questions' && (
-                    <>
-                      <th className="p-2">标题</th>
-                      <th className="p-2">作者</th>
-                      <th className="p-2">时间</th>
-                      <th className="p-2">操作</th>
-                    </>
-                  )}
-                  {contentTab === 'answers' && (
-                    <>
-                      <th className="p-2">问题</th>
-                      <th className="p-2">评论内容</th>
-                      <th className="p-2">作者</th>
-                      <th className="p-2">时间</th>
-                      <th className="p-2">操作</th>
-                    </>
-                  )}
-                  {contentTab === 'novels' && (
-                    <>
-                      <th className="p-2">标题</th>
-                      <th className="p-2">分类</th>
-                      <th className="p-2">作者</th>
-                      <th className="p-2">时间</th>
-                      <th className="p-2">操作</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {allContentData.map(item => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2"><input type="checkbox" checked={selectedContentIds.includes(item.id)} onChange={() => handleSelectContent(item.id)} /></td>
-                    
-                    {contentTab === 'questions' && (
-                      <>
-                        <td className="p-2 truncate max-w-md">{item.title}</td>
-                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
-                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
-                        <td className="p-2">
-                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </>
-                    )}
-                    
-                    {contentTab === 'answers' && (
-                      <>
-                        <td className="p-2 truncate max-w-xs text-blue-600">{item.question?.title || '已删除的问题'}</td>
-                        <td className="p-2 truncate max-w-md text-gray-500">{item.content?.substring(0, 50)}...</td>
-                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
-                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
-                        <td className="p-2">
-                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </>
-                    )}
-                    
-                    {contentTab === 'novels' && (
-                      <>
-                        <td className="p-2 truncate max-w-md">{item.title}</td>
-                        <td className="p-2 text-gray-500">{item.category}</td>
-                        <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
-                        <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
-                        <td className="p-2">
-                          <button onClick={() => handleDeleteContent(item.id)} className="text-red-500">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+    {allContentLoading ? (
+      <div className="text-center py-8 text-gray-400">加载中...</div>
+    ) : allContentData.length === 0 ? (
+      <div className="text-center py-8 text-gray-400">没有找到内容</div>
+    ) : (
+      <div 
+        className="overflow-x-auto"
+        onMouseLeave={handleMouseUp}
+      >
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-xs text-gray-500">
+            <tr>
+              <th className="p-2 w-10">
+                <input 
+                  type="checkbox" 
+                  checked={selectAll} 
+                  onChange={handleSelectAll} 
+                  className="cursor-pointer"
+                />
+              </th>
+              {contentTab === 'questions' && (
+                <>
+                  <th className="p-2">标题</th>
+                  <th className="p-2">作者</th>
+                  <th className="p-2">时间</th>
+                  <th className="p-2">操作</th>
+                </>
+              )}
+              {contentTab === 'answers' && (
+                <>
+                  <th className="p-2">问题</th>
+                  <th className="p-2">评论内容</th>
+                  <th className="p-2">作者</th>
+                  <th className="p-2">时间</th>
+                  <th className="p-2">操作</th>
+                </>
+              )}
+              {contentTab === 'novels' && (
+                <>
+                  <th className="p-2">标题</th>
+                  <th className="p-2">分类</th>
+                  <th className="p-2">作者</th>
+                  <th className="p-2">时间</th>
+                  <th className="p-2">操作</th>
+                </>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {allContentData.map((item, index) => (
+              <tr 
+                key={item.id} 
+                className={`border-b hover:bg-gray-50 ${dragSelecting && dragStartIndex !== null && dragEndIndex !== null && index >= Math.min(dragStartIndex, dragEndIndex) && index <= Math.max(dragStartIndex, dragEndIndex) ? 'bg-blue-50' : ''}`}
+                onMouseDown={() => handleMouseDown(index)}
+                onMouseEnter={() => handleMouseEnter(index)}
+                onMouseUp={handleMouseUp}
+              >
+                <td className="p-2">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedContentIds.includes(item.id)} 
+                    onChange={() => handleSelectContent(item.id)} 
+                    className="cursor-pointer"
+                  />
+                </td>
+                
+                {contentTab === 'questions' && (
+                  <>
+                    <td className="p-2 truncate max-w-md">{item.title}</td>
+                    <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                    <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                    <td className="p-2">
+                      <button onClick={() => handleDeleteContent(item.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </>
+                )}
+                
+                {contentTab === 'answers' && (
+                  <>
+                    <td className="p-2 truncate max-w-xs text-blue-600">{item.question?.title || '已删除的问题'}</td>
+                    <td className="p-2 truncate max-w-md text-gray-500">{item.content?.substring(0, 50)}...</td>
+                    <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                    <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                    <td className="p-2">
+                      <button onClick={() => handleDeleteContent(item.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </>
+                )}
+                
+                {contentTab === 'novels' && (
+                  <>
+                    <td className="p-2 truncate max-w-md">{item.title}</td>
+                    <td className="p-2 text-gray-500">{item.category}</td>
+                    <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
+                    <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
+                    <td className="p-2">
+                      <button onClick={() => handleDeleteContent(item.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+)}
 
       {/* ----------------- 模块 3: 批量工具 ----------------- */}
       {mainTab === 'tools' && (
