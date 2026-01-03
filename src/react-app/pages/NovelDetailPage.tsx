@@ -69,7 +69,7 @@ export default function NovelReadingPage() {
   if (isLoading) return <div className="p-20 text-center animate-pulse text-stone-500">翻开书卷...</div>;
   if (!novel) return <div className="p-20 text-center">暂无内容</div>;
 
-  // --- ✨ 优化后的【半透明毛玻璃】解锁弹窗 ---
+  // 未登录状态的解锁弹窗
   if (!isLoggedIn) {
     return (
       <div className={`min-h-screen relative flex items-center justify-center p-6 overflow-hidden ${isDarkMode ? 'bg-zinc-950' : 'bg-[#f6f1e7]'}`}>
@@ -174,7 +174,15 @@ export default function NovelReadingPage() {
           </p>
         </header>
 
-        <article className="min-h-[50vh] leading-relaxed font-serif text-justify" style={{ fontSize: `${fontSize}px` }}>
+        {/* 文章内容区域 - 增加了换行处理样式 */}
+        <article 
+          className="min-h-[50vh] leading-relaxed font-serif text-justify" 
+          style={{ 
+            fontSize: `${fontSize}px`,
+            wordBreak: 'break-all',      // 允许在任意字符间断行
+            overflowWrap: 'break-word'   // 处理长单词或连续字符换行
+          }}
+        >
           {currentDisplayParagraphs.map((p, i) => (
             <p key={i} className="mb-8 indent-8">{p}</p>
           ))}
