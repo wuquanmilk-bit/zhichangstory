@@ -179,17 +179,22 @@ export default function NovelReadingPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12 w-full box-sizing: border-box">
-        <header className="mb-12 text-center">
-         <h1 
-  className="text-3xl font-serif font-black mb-4 leading-tight break-words whitespace-pre-wrap w-full max-w-full"
-  style={{
-    wordBreak: 'break-all', // 强制任意字符（包括无空格连续字符）换行
-    overflowWrap: 'break-word' // 长单词拆分换行，双重保障
-  }}
->
-  {novel.title}
-</h1>
+      <div className="max-w-2xl mx-auto px-6 py-12 w-full box-border">
+        {/* 标题区域 - 修复移动端不换行问题 */}
+        <header className="mb-12 text-center w-full max-w-full box-border">
+          <h1 
+            className="text-3xl font-serif font-black mb-4 leading-tight break-words whitespace-pre-wrap break-all w-full max-w-full"
+            style={{
+              wordBreak: 'break-all !important',
+              overflowWrap: 'break-word !important',
+              whiteSpace: 'pre-wrap !important',
+              maxWidth: '100% !important',
+              width: '100% !important',
+              wordWrap: 'break-word !important'
+            }}
+          >
+            {novel.title}
+          </h1>
           <p className="text-[10px] text-stone-400 font-bold tracking-[0.2em] uppercase">
             第 {currentPage + 1} / {totalPages} 回  |  刊印：{formatDate(novel.created_at)}
           </p>
@@ -197,16 +202,16 @@ export default function NovelReadingPage() {
 
         {/* 文章内容区域 - 严格强制换行，不撑破容器 */}
         <article 
-          className="min-h-[50vh] leading-relaxed font-serif text-justify w-full box-sizing: border-box" 
+          className="min-h-[50vh] leading-relaxed font-serif text-justify w-full box-border" 
           style={{ 
-  fontSize: `${fontSize}px`,
-  wordBreak: 'break-all',        // 强制任意字符（包括连续i）换行
-  overflowWrap: 'break-word',    // 长单词/URL拆分换行
-  whiteSpace: 'pre-wrap',        // 保留原始换行，同时自动适配容器宽度
-  maxWidth: '100%',              // 严格限制最大宽度为父容器
-  padding: 0,                    // 无额外内边距导致溢出
-  margin: '0 auto',              // 修正：值用字符串包裹，补充逗号/分号（这里用逗号，因为是对象属性）
-}}
+            fontSize: `${fontSize}px`,
+            wordBreak: 'break-all',
+            overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+            maxWidth: '100%',
+            padding: 0,
+            margin: '0 auto'
+          }}
         >
           {currentDisplayParagraphs.map((p, i) => (
             <p key={i} className="mb-8 indent-8 break-words whitespace-pre-wrap w-full">
