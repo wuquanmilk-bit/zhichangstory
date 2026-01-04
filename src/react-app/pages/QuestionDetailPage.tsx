@@ -9,7 +9,7 @@ import {
   TrendingUp, Award, Shield, Zap, AlertCircle
 } from 'lucide-react';
 
-// 骨架屏组件
+// --- [ 1. 完整骨架屏组件 ] ---
 const QuestionDetailSkeleton = memo(() => (
   <div className="max-w-4xl mx-auto px-4 py-8 font-['PingFang_SC']">
     <div className="mb-6">
@@ -70,8 +70,8 @@ const QuestionDetailSkeleton = memo(() => (
 
 QuestionDetailSkeleton.displayName = 'QuestionDetailSkeleton';
 
-// 答案项组件
-const AnswerItem = memo(({ answer, index }) => {
+// --- [ 2. 完整答案项组件 ] ---
+const AnswerItem = memo(({ answer, index }: any) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const ansProfile = answer.profiles;
   const ansAvatar = useMemo(() => 
@@ -79,6 +79,15 @@ const AnswerItem = memo(({ answer, index }) => {
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${answer.user_id}&size=64`,
     [ansProfile?.avatar_id, answer.user_id]
   );
+
+  // 【修复 1970 关键点】安全解析逻辑
+  const displayDate = useMemo(() => {
+    if (!answer.created_at) return '刚刚';
+    const date = new Date(answer.created_at);
+    // 如果日期无效或早于1971年，显示为刚刚
+    if (isNaN(date.getTime()) || date.getFullYear() <= 1970) return '刚刚';
+    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+  }, [answer.created_at]);
 
   return (
     <div 
@@ -121,10 +130,9 @@ const AnswerItem = memo(({ answer, index }) => {
         </div>
         <div className="flex items-center gap-1 text-xs text-stone-400">
           <Clock size={12} />
-          <span>{new Date(answer.created_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
+          <span>{displayDate}</span>
         </div>
       </div>
-      {/* 回答内容 - 强制换行，不撑破容器 */}
       <p className="text-stone-600 pl-1 font-medium leading-relaxed whitespace-pre-wrap break-words w-full">
         {answer.content}
       </p>
@@ -134,6 +142,7 @@ const AnswerItem = memo(({ answer, index }) => {
 
 AnswerItem.displayName = 'AnswerItem';
 
+// --- [ 3. 页面主组件 ] ---
 function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -154,16 +163,12 @@ function QuestionDetailPage() {
 
   // 获取详情数据
   const fetchDetail = useCallback(async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
     
     try {
       setLoading(true);
-      
       const [questionPromise, answersPromise] = await Promise.all([
         supabase.from('questions').select('*, profiles(*)').eq('id', id).single(),
         supabase.from('answers').select('*, profiles(*)').eq('questionid', id).order('created_at', { ascending: true })
@@ -171,7 +176,6 @@ function QuestionDetailPage() {
       
       if (controller.signal.aborted) return;
       if (questionPromise.error) throw questionPromise.error;
-      if (answersPromise.error) throw answersPromise.error;
       
       setQuestion(questionPromise.data);
       setAnswers(answersPromise.data || []);
@@ -188,97 +192,60 @@ function QuestionDetailPage() {
         };
         
         setStats(newStats);
-        
-        await supabase
-          .from('questions')
-          .update({ 
-            stats: { 
-              ...currentStats, 
-              views: newStats.views 
-            } 
-          })
-          .eq('id', id);
+        await supabase.from('questions').update({ stats: { ...currentStats, views: newStats.views } }).eq('id', id);
       }
-      
-    } catch (e) {
+    } catch (e: any) {
       if (e.name !== 'AbortError') console.error("数据加载失败:", e);
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
   }, [id]);
 
-  // 检查点赞
+  // 检查点赞状态
   const checkUserLike = useCallback(async () => {
     if (!user || !id) return;
     const { data } = await supabase.from('likes').select('*').eq('question_id', id).eq('user_id', user.id).single();
     if (data) setIsLiked(true);
   }, [user, id]);
 
-  // 点赞处理
-const onLike = useCallback(async () => {
-  if (!question || !user || !question.stats) {
-    navigate('/login', { state: { from: location.pathname } });
-    return;
-  }
-  
-  try {
-    // 1. 获取当前问题的原始stats（保留阅读量、回答数等其他字段）
-    const currentStats = { ...question.stats };
-    const currentLikes = currentStats.likes || 0; // 处理点赞数为undefined的情况
-    let newLikes = currentLikes;
-
-    // 2. 点赞/取消点赞逻辑
-    if (isLiked) {
-      // 取消点赞：点赞数-1（确保不小于0）
-      newLikes = Math.max(currentLikes - 1, 0);
-    } else {
-      // 点赞：点赞数+1
-      newLikes = currentLikes + 1;
-    }
-
-    // 3. 调用Supabase更新questions表的stats字段
-    const { error: updateError } = await supabase
-      .from('questions') // 操作正确的问题表
-      .update({
-        stats: { ...currentStats, likes: newLikes }, // 只更新点赞数，保留其他统计
-        updated_at: new Date().toISOString() // 可选：更新修改时间
-      })
-      .eq('id', id); // 按问题ID定位记录
-
-    if (updateError) throw updateError;
-
-    // 4. 前端状态同步（无成功提示框）
-    setIsLiked(!isLiked);
-    setStats(prev => ({ ...prev, likes: newLikes }));
-    setQuestion(prev => prev ? { ...prev, stats: { ...currentStats, likes: newLikes } } : null);
-    
-  } catch (err: any) {
-    console.error('点赞操作失败:', err);
-    alert(`点赞操作失败：${err.message || '请稍后重试'}`);
-  }
-}, [question, user, id, isLiked, navigate, location.pathname]);
-
-  // 提交评论 (核心修改：添加封禁检查)
-  const submitComment = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
+  // 点赞逻辑
+  const onLike = useCallback(async () => {
+    if (!question || !user || !question.stats) {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
-    
+    try {
+      const currentStats = { ...question.stats };
+      const currentLikes = currentStats.likes || 0;
+      let newLikes = isLiked ? Math.max(currentLikes - 1, 0) : currentLikes + 1;
+
+      const { error } = await supabase.from('questions').update({
+        stats: { ...currentStats, likes: newLikes },
+        updated_at: new Date().toISOString()
+      }).eq('id', id);
+
+      if (error) throw error;
+      setIsLiked(!isLiked);
+      setStats(prev => ({ ...prev, likes: newLikes }));
+      setQuestion((prev: any) => prev ? { ...prev, stats: { ...currentStats, likes: newLikes } } : null);
+    } catch (err: any) {
+      console.error('点赞失败:', err);
+    }
+  }, [question, user, id, isLiked, navigate, location.pathname]);
+
+  // 提交评论
+  const submitComment = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) { navigate('/login', { state: { from: location.pathname } }); return; }
     if (!comment.trim()) return;
     
     setIsSubmitting(true);
-    
     try {
-      // --- 关键插入：封禁校验 ---
-      const { data: profile } = await supabase.from('profiles').select('is_banned, user_status').eq('id', user.id).single();
-      if (profile?.is_banned || profile?.user_status === 'banned') {
+      const { data: profile } = await supabase.from('profiles').select('is_banned').eq('id', user.id).single();
+      if (profile?.is_banned) {
         alert("您的账号已被封禁，无法发表评论。");
-        setIsSubmitting(false);
         return;
       }
-      // ------------------------
 
       const { error } = await supabase.from('answers').insert([{
         questionid: id,
@@ -289,30 +256,13 @@ const onLike = useCallback(async () => {
       
       if (error) throw error;
       
-      const { data: newAnswer } = await supabase
-        .from('answers')
-        .select('*, profiles(*)')
-        .eq('questionid', id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
+      const { data: newAnswer } = await supabase.from('answers').select('*, profiles(*)').eq('questionid', id).order('created_at', { ascending: false }).limit(1).single();
       if (newAnswer) {
         setAnswers(prev => [newAnswer, ...prev]);
         setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
       }
-      
       setComment('');
-      
-      setTimeout(() => {
-        const commentSection = document.getElementById('answers-section');
-        if (commentSection) {
-          commentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-      
     } catch (err) {
-      console.error('发表评论失败:', err);
       alert('评论失败，请稍后重试');
     } finally {
       setIsSubmitting(false);
@@ -345,9 +295,7 @@ const onLike = useCallback(async () => {
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-stone-700 mb-2">问题不存在</h2>
-          <button onClick={() => navigate('/questions')} className="px-6 py-3 bg-red-600 text-white rounded-xl">
-            返回列表
-          </button>
+          <button onClick={() => navigate('/questions')} className="px-6 py-3 bg-red-600 text-white rounded-xl">返回列表</button>
         </div>
       </div>
     );
@@ -356,6 +304,14 @@ const onLike = useCallback(async () => {
   const author = question.profiles;
   const authorAvatar = AVATAR_OPTIONS.find(a => a.id === author?.avatar_id)?.url || 
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${question.user_id}&size=64`;
+
+  // 【修复 1970】主贴日期保护逻辑
+  const mainQDate = () => {
+    if (!question.created_at) return "刚刚";
+    const d = new Date(question.created_at);
+    if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return "刚刚";
+    return d.toLocaleDateString();
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 font-['PingFang_SC']">
@@ -369,10 +325,10 @@ const onLike = useCallback(async () => {
             <MoreVertical size={20} className="text-stone-400" />
           </button>
           {showActions && (
-            <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-xl border border-stone-200 z-10 w-32">
-              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm"><Share2 size={16}/> 分享</button>
-              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm"><Bookmark size={16}/> 收藏</button>
-              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm text-red-500"><Flag size={16}/> 举报</button>
+            <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-xl border border-stone-200 z-10 w-32 overflow-hidden animate-fadeIn">
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm text-stone-600"><Share2 size={16}/> 分享</button>
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm text-stone-600"><Bookmark size={16}/> 收藏</button>
+              <button className="flex items-center gap-2 px-4 py-2 hover:bg-stone-50 w-full text-sm text-red-500 border-t border-stone-50"><Flag size={16}/> 举报</button>
             </div>
           )}
         </div>
@@ -392,7 +348,7 @@ const onLike = useCallback(async () => {
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs">
               <span className="text-amber-600 font-bold">修为 {author?.exp || 0}</span>
-              <span className="text-stone-400">{new Date(question.created_at).toLocaleDateString()}</span>
+              <span className="text-stone-400">{mainQDate()}</span>
             </div>
           </div>
         </div>
@@ -400,7 +356,6 @@ const onLike = useCallback(async () => {
         <h1 className="text-3xl font-black text-stone-900 mb-6 leading-tight break-words whitespace-pre-wrap w-full">
           {question.title}
         </h1>
-        {/* 问题内容 - 强制换行 */}
         <div className="text-stone-700 leading-relaxed mb-10 text-lg border-l-4 border-red-600 pl-6 py-4 bg-gradient-to-r from-red-50/20 to-orange-50/20 rounded-r-xl whitespace-pre-wrap break-words font-medium w-full">
           {question.content}
         </div>
@@ -428,7 +383,7 @@ const onLike = useCallback(async () => {
         </div>
       </div>
 
-      {/* 评论区 - 输入框强制换行，限制最大高度 */}
+      {/* 评论区输入框 */}
       <form onSubmit={submitComment} className="relative mb-12">
         <textarea
           ref={commentTextareaRef}
@@ -452,7 +407,7 @@ const onLike = useCallback(async () => {
         </div>
       </form>
 
-      {/* 回答列表 */}
+      {/* 回答列表区 */}
       <div id="answers-section" className="space-y-6 pb-20">
         <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
           <h3 className="text-xl font-black text-stone-900 flex items-center gap-2">
