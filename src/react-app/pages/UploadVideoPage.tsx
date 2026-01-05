@@ -133,8 +133,8 @@ export default function UploadVideoPage() {
           <ShieldCheck className="w-12 h-12" />
         </div>
         <h2 className="text-2xl font-black text-gray-900 mb-2">投稿成功，正在审核中</h2>
-        <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          您的视频已提交至内容安全中心。审核通常需要 10-30 分钟，通过后将自动展示在视频列表和您的个人主页。
+        <p className="text-gray-50 mb-8 max-w-md mx-auto">
+          您的视频已提交至内容安全中心。审核通常需要 10-30 分钟，支持短视频，通过后将自动展示在视频列表和您的个人主页。
         </p>
         <div className="flex justify-center gap-4">
           <button onClick={() => navigate('/videos')} className="px-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-colors">
