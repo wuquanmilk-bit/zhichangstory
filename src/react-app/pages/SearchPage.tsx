@@ -3,6 +3,23 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Search, BookOpen, MessageSquare, Loader2, Hash, Eye, ThumbsUp, Calendar, X } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
+// 定义接口以确保类型安全（可选，但推荐）
+interface Stats {
+  views?: number;
+  likes?: number;
+  comments?: number;
+  reads?: number; // 兼容小说可能用的字段
+}
+
+interface BaseItem {
+  id: string;
+  title: string;
+  created_at: string;
+  stats?: Stats; // 增加 stats 字段
+  tags?: string[];
+  [key: string]: any;
+}
+
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
@@ -10,8 +27,8 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState(query);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<{
-    novels: any[];
-    questions: any[];
+    novels: BaseItem[];
+    questions: BaseItem[];
   }>({ novels: [], questions: [] });
   const [activeTab, setActiveTab] = useState<'all' | 'novels' | 'questions'>('all');
   const [hasSearched, setHasSearched] = useState(false);
@@ -226,11 +243,12 @@ export default function SearchPage() {
                         <div className="flex items-center gap-4">
                           <span className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
-                            {novel.reads || 0}
+                            {/* 这里优先读取 reads，如果没有则读取 views，都来自于 stats */}
+                            {novel.stats?.reads || novel.stats?.views || 0}
                           </span>
                           <span className="flex items-center gap-1">
                             <ThumbsUp className="h-3 w-3" />
-                            {novel.likes || 0}
+                            {novel.stats?.likes || 0}
                           </span>
                         </div>
                         <span className="flex items-center gap-1">
@@ -266,15 +284,16 @@ export default function SearchPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <Eye className="h-4 w-4" />
-                        {question.views || 0}
+                        {question.stats?.views || 0}
                       </span>
                       <span className="flex items-center gap-1">
                         <ThumbsUp className="h-4 w-4" />
-                        {question.likes || 0}
+                        {question.stats?.likes || 0}
                       </span>
                       <span className="flex items-center gap-1">
                         <MessageSquare className="h-4 w-4" />
-                        {question.answers_count || 0} 个回答
+                        {/* 数据库中是 comments，界面显示为回答数 */}
+                        {question.stats?.comments || 0} 个回答
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
@@ -283,7 +302,7 @@ export default function SearchPage() {
                     </div>
                     {question.tags && question.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-4">
-                        {question.tags.map((tag, index) => (
+                        {question.tags.map((tag: string, index: number) => (
                           <span
                             key={index}
                             className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm"
