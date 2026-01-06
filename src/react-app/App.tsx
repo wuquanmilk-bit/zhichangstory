@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } f
 import { AuthProvider } from "../contexts/AuthContext";
 import { supabase } from "../supabaseClient";
 import { Search, PlusSquare, PenTool, PlayCircle } from "lucide-react";
+import VideoControlCenter from "./admin-tools/VideoControlCenter";
 
 // --- 1. 核心基础组件 (静态导入以加快首屏渲染) ---
 import UserMenu from "./components/UserMenu";
@@ -22,6 +23,7 @@ const SearchPage = lazy(() => import("./pages/SearchPage"));
 const VideosPage = lazy(() => import("./pages/VideosPage"));
 const VideoDetailPage = lazy(() => import("./pages/VideoDetailPage"));
 const UploadVideoPage = lazy(() => import("./pages/UploadVideoPage"));
+
 
 // 用户与鉴权
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -199,6 +201,7 @@ function AppContent() {
             <Route path="/my-novels" element={<ProtectedRoute><MyNovelsPage /></ProtectedRoute>} />
             <Route path="/ask-question" element={<ProtectedRoute><AskQuestionPage /></ProtectedRoute>} />
             <Route path="/my-questions" element={<ProtectedRoute><MyQuestionsPage /></ProtectedRoute>} />
+            <Route path="/video-manager" element={<VideoControlCenter />} />
 
             {/* 通配 404 */}
             <Route path="*" element={<Navigate to="/" replace />} />
