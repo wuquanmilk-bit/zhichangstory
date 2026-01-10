@@ -1,306 +1,497 @@
 import React, { useState, useEffect } from 'react';
-// 💡 关键修正：直接引用你根目录配好的客户端，确保权限和环境一致
 import { supabase } from "../../supabaseClient"; 
 import { 
-  User, Shield, Search, LayoutGrid, Wrench, 
-  Sparkles, Trash2, Terminal, FileText, BookOpen, MessageCircle,
-  Zap, Crown, Award, BadgeCheck, CheckCircle2, UserCog,
-  Video, Play, RefreshCw, ChevronLeft, Clock, Check, X, ExternalLink,
-  Coins, TrendingUp, Ban, ShieldAlert, MousePointer2
+  Trash2, Plus, Save, RefreshCw, Search, X, Check,
+  ChevronLeft, Play, ExternalLink, AlertCircle
 } from 'lucide-react';
 
-// --- 类型定义 ---
-interface Profile {
+// 复用现有类型定义，保持和你代码库一致
+interface Video {
   id: string;
-  username: string;
-  email: string;
-  nickname?: string;
-  coins: number;
-  role: string;
-  exp: number;
-  user_level: number;
-  is_banned: boolean;
-  is_muted: boolean;
-  ban_reason?: string;
-  mute_reason?: string;
-  is_verified: boolean; 
-  is_blue_v: boolean; 
-  is_contract_author: boolean; 
-  is_vip: boolean; 
-  is_author: boolean; 
-  is_moderator: boolean; 
+  title: string;
+  video_url: string;
+  thumbnail_url: string;
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
+  author?: {
+    username: string;
+  };
 }
 
-const TABLE = {
-  USERS: 'profiles',
-  QUESTIONS: 'questions',
-  ANSWERS: 'answers',
-  NOVELS: 'novels',
-  VIDEOS: 'videos'
-};
-
-// ==========================================
-// 1. 子组件：视频风控审计大屏 (修复更新逻辑)
-// ==========================================
-const VideoAuditSubPage = ({ onBack }: { onBack: () => void }) => {
-  const [videos, setVideos] = useState<any[]>([]);
+// 简化版视频管理+审核中心
+const SimpleVideoManager = () => {
+  // 核心状态
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [newVideo, setNewVideo] = useState<Partial<Video>>({
+    title: '',
+    video_url: '',
+    thumbnail_url: '',
+    status: 'pending'
+  });
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
 
-  const loadVideos = async () => {
+  // 加载所有视频（关联作者信息，和你现有代码逻辑一致）
+  const loadAllVideos = async () => {
     setLoading(true);
-    // 💡 获取视频和作者信息
-    const { data, error } = await supabase
-      .from(TABLE.VIDEOS)
-      .select(`*, author:profiles(username)`)
-      .order('created_at', { ascending: false });
-    
-    if (!error && data) setVideos(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { loadVideos(); }, []);
-
-  // 💡 核心修复：执行数据库更新
-  const handleAudit = async (id: string, newStatus: 'approved' | 'rejected') => {
     try {
-      const { data, error } = await supabase
-        .from(TABLE.VIDEOS)
-        .update({ status: newStatus }) // 更新状态字段
-        .eq('id', id)
-        .select();
+      let query = supabase
+        .from('videos')
+        .select(`*, author:profiles(username)`)
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("更新失败:", error);
-        alert("审批失败: " + error.message + "\n请检查数据库 RLS 权限是否开启了 UPDATE。");
-        return;
+      // 状态过滤
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus);
       }
 
-      // 实时更新本地 UI 状态
-      setVideos(prev => prev.map(v => v.id === id ? { ...v, status: newStatus } : v));
-      alert(`谷子视频已标记为: ${newStatus === 'approved' ? '批准发布' : '已拦截'}`);
-    } catch (err) {
-      alert("网络异常，请重试");
+      const { data, error } = await query;
+      if (error) throw error;
+      setVideos(data || []);
+    } catch (error) {
+      console.error('加载视频失败:', error);
+      alert('加载视频失败，请检查网络或数据库连接');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filtered = videos.filter(v => (v.status || 'pending') === filter);
+  // 初始化加载
+  useEffect(() => {
+    loadAllVideos();
+  }, [filterStatus]);
 
-  return (
-    <div className="space-y-6 animate-fadeIn p-4">
-      <div className="flex justify-between items-center bg-white p-5 rounded-3xl border shadow-sm">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-600 font-black hover:text-blue-600 px-6 py-2 bg-slate-50 rounded-2xl transition-all">
-          <ChevronLeft size={20} /> 返回后台
-        </button>
-        <div className="flex bg-slate-100 p-1 rounded-2xl border">
-          {(['pending', 'approved', 'rejected'] as const).map((s) => (
-            <button key={s} onClick={() => setFilter(s)} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${filter === s ? 'bg-white shadow text-blue-600' : 'text-slate-400'}`}>
-              {s === 'pending' ? '待审核' : s === 'approved' ? '已通过' : '已拦截'}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      {loading ? (
-        <div className="py-20 text-center text-slate-400">正在调取监控...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map(v => (
-            <div key={v.id} className="bg-white rounded-3xl overflow-hidden border shadow-sm hover:shadow-xl transition-all group">
-              <div className="relative aspect-video bg-slate-900">
-                <img src={v.thumbnail_url} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
-                <a href={v.video_url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-xl"><Play size={24} fill="currentColor"/></div>
-                </a>
-              </div>
-              <div className="p-5">
-                <h3 className="font-black text-slate-800 truncate mb-1">{v.title || '未命名视频'}</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">作者: {v.author?.username || '匿名侠客'}</p>
-                {v.status === 'pending' && (
-                  <div className="flex gap-2 mt-4">
-                    <button onClick={() => handleAudit(v.id, 'approved')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-black shadow-lg shadow-blue-100 hover:bg-blue-700">批准</button>
-                    <button onClick={() => handleAudit(v.id, 'rejected')} className="flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl text-xs font-black hover:bg-slate-200">拒绝</button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+  // 搜索+状态双重过滤
+  const filteredVideos = videos.filter(video => 
+    video.title?.toLowerCase().includes(searchKeyword.toLowerCase())
   );
-};
 
-// ==========================================
-// 2. 主页面逻辑
-// ==========================================
-const SecretManager = () => {
-  const [mainTab, setMainTab] = useState<'users' | 'content' | 'tools' | 'video_audit'>('users');
-  const [loading, setLoading] = useState(false);
-  
-  const [users, setUsers] = useState<Profile[]>([]);
-  const [targetUser, setTargetUser] = useState<Profile | null>(null);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [contentTab, setContentTab] = useState<'questions' | 'answers' | 'novels'>('questions');
-  const [contentData, setContentData] = useState<any[]>([]);
-  const [toolLog, setToolLog] = useState<string[]>([]);
-
-  // 加载数据
-  const loadMainData = async () => {
-    setLoading(true);
-    if (mainTab === 'users') {
-      let query = supabase.from(TABLE.USERS).select('*').order('created_at', { ascending: false });
-      if (searchKeyword) query = query.or(`username.ilike.%${searchKeyword}%,email.ilike.%${searchKeyword}%`);
-      const { data } = await query.limit(50);
-      if (data) setUsers(data as Profile[]);
-    } else if (mainTab === 'content') {
-      const { data } = await supabase.from(contentTab).select(`*, author:profiles(username)`).order('created_at', { ascending: false }).limit(50);
-      if (data) setContentData(data);
-    }
-    setLoading(false);
+  // 选择/取消选择视频
+  const toggleVideoSelection = (id: string) => {
+    setSelectedVideos(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id) 
+        : [...prev, id]
+    );
   };
 
-  useEffect(() => { loadMainData(); }, [mainTab, contentTab, searchKeyword]);
+  // 全选/取消全选
+  const toggleSelectAll = () => {
+    setSelectedVideos(prev => 
+      prev.length === filteredVideos.length 
+        ? [] 
+        : filteredVideos.map(v => v.id)
+    );
+  };
 
-  const addLog = (msg: string) => setToolLog(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 50)]);
+  // 批量删除
+  const batchDelete = async () => {
+    if (selectedVideos.length === 0) {
+      alert('请先选择要删除的视频');
+      return;
+    }
+
+    if (!confirm(`确定要删除选中的 ${selectedVideos.length} 个视频吗？`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .delete()
+        .in('id', selectedVideos);
+      
+      if (error) throw error;
+      
+      // 更新本地列表
+      setVideos(prev => prev.filter(v => !selectedVideos.includes(v.id)));
+      setSelectedVideos([]);
+      alert('删除成功');
+    } catch (error) {
+      console.error('批量删除失败:', error);
+      alert('删除失败，请重试');
+    }
+  };
+
+  // 批量审核（通过/拒绝）
+  const batchAudit = async (status: 'approved' | 'rejected') => {
+    if (selectedVideos.length === 0) {
+      alert('请先选择要审核的视频');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({ status })
+        .in('id', selectedVideos);
+      
+      if (error) throw error;
+      
+      // 更新本地列表
+      setVideos(prev => prev.map(v => 
+        selectedVideos.includes(v.id) ? { ...v, status } : v
+      ));
+      setSelectedVideos([]);
+      alert(`批量${status === 'approved' ? '批准' : '拒绝'}成功`);
+    } catch (error) {
+      console.error('批量审核失败:', error);
+      alert('审核失败，请重试');
+    }
+  };
+
+  // 单个视频审核
+  const auditVideo = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({ status })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // 更新本地列表
+      setVideos(prev => prev.map(v => 
+        v.id === id ? { ...v, status } : v
+      ));
+      alert(`视频已${status === 'approved' ? '批准' : '拒绝'}`);
+    } catch (error) {
+      console.error('审核失败:', error);
+      alert('审核失败，请重试');
+    }
+  };
+
+  // 添加新视频
+  const addNewVideo = async () => {
+    if (!newVideo.title || !newVideo.video_url) {
+      alert('标题和视频链接不能为空');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('videos')
+        .insert([{
+          title: newVideo.title,
+          video_url: newVideo.video_url,
+          thumbnail_url: newVideo.thumbnail_url || '',
+          status: newVideo.status || 'pending'
+        }])
+        .select();
+      
+      if (error) throw error;
+      
+      // 更新本地列表
+      setVideos(prev => [data[0], ...prev]);
+      // 重置表单
+      setNewVideo({ title: '', video_url: '', thumbnail_url: '', status: 'pending' });
+      alert('添加视频成功');
+    } catch (error) {
+      console.error('添加视频失败:', error);
+      alert('添加失败，请重试');
+    }
+  };
+
+  // 保存编辑的视频
+  const saveEditedVideo = async () => {
+    if (!editingVideo || !editingVideo.title) {
+      alert('标题不能为空');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({
+          title: editingVideo.title,
+          video_url: editingVideo.video_url,
+          thumbnail_url: editingVideo.thumbnail_url,
+          status: editingVideo.status
+        })
+        .eq('id', editingVideo.id);
+      
+      if (error) throw error;
+      
+      // 更新本地列表
+      setVideos(prev => prev.map(v => 
+        v.id === editingVideo.id ? editingVideo : v
+      ));
+      setEditingVideo(null);
+      alert('编辑成功');
+    } catch (error) {
+      console.error('编辑视频失败:', error);
+      alert('编辑失败，请重试');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-6 font-['PingFang_SC']">
+    <div className="min-h-screen bg-[#f8fafc] p-6">
       <div className="max-w-[1600px] mx-auto">
-        
-        {/* 顶部导航 */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-100">
-              <Shield className="text-white" size={24} />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-slate-900">谷子小说 · 核心管理</h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SYSTEM CONTROL CENTER</p>
-            </div>
-          </div>
-          <div className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl">
-            {(['users', 'content', 'tools'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setMainTab(tab)}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
-                  mainTab === tab ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                {tab === 'users' ? <User size={16}/> : tab === 'content' ? <LayoutGrid size={16}/> : <Wrench size={16}/>}
-                {tab === 'users' ? '用户管理' : tab === 'content' ? '内容监控' : '自动化工具'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 视频审计快捷入口 */}
-        {mainTab === 'content' && (
-          <div className="mb-8 p-8 bg-slate-900 rounded-[2.5rem] text-white flex justify-between items-center shadow-2xl relative overflow-hidden group">
-            <div className="relative z-10">
-              <h2 className="text-2xl font-black text-blue-400 flex items-center gap-3">
-                <Video size={28} className="animate-pulse" /> 谷子视频风控审计
-              </h2>
-              <p className="text-slate-400 mt-2 font-bold">后台检测到待审核视频，需人工介入</p>
-            </div>
-            <button onClick={() => setMainTab('video_audit')} className="relative z-10 px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-900/40">
-              进入审计大屏
-            </button>
-          </div>
-        )}
-
-        {/* 模块：用户管理 */}
-        {mainTab === 'users' && (
-          <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-4 bg-white rounded-[2rem] border p-6 h-[700px] flex flex-col">
-              <div className="relative mb-6">
+        {/* 顶部操作栏 */}
+        <div className="bg-white rounded-3xl p-5 mb-6 shadow-sm border">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            <h1 className="text-xl font-black text-slate-900">视频管理中心</h1>
+            
+            {/* 搜索和筛选 */}
+            <div className="flex gap-3 w-full md:w-auto">
+              <div className="relative flex-1 md:flex-none w-full md:w-64">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                 <input 
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold"
-                  placeholder="搜索用户..."
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold"
+                  placeholder="搜索视频标题..."
                   value={searchKeyword}
                   onChange={e => setSearchKeyword(e.target.value)}
                 />
               </div>
-              <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-                {users.map(u => (
-                  <div key={u.id} onClick={() => setTargetUser(u)} className={`p-4 rounded-2xl cursor-pointer border-2 transition-all ${targetUser?.id === u.id ? 'border-blue-500 bg-blue-50' : 'border-transparent bg-slate-50 hover:bg-slate-100'}`}>
-                    <div className="font-black text-slate-800">{u.username || '匿名'}</div>
-                    <div className="text-[10px] text-slate-400 mt-1 uppercase">Coins: {u.coins} | Exp: {u.exp}</div>
-                  </div>
-                ))}
-              </div>
+              
+              {/* 状态筛选 */}
+              <select 
+                className="bg-slate-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-slate-700"
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value as any)}
+              >
+                <option value="all">全部状态</option>
+                <option value="pending">待审核</option>
+                <option value="approved">已通过</option>
+                <option value="rejected">已拒绝</option>
+              </select>
+              
+              <button 
+                onClick={loadAllVideos}
+                className="bg-slate-50 rounded-2xl p-3 hover:bg-slate-100 transition-colors"
+                title="刷新列表"
+              >
+                <RefreshCw size={18} className="text-slate-600" />
+              </button>
             </div>
-            
-            <div className="col-span-12 lg:col-span-8 bg-white rounded-[2rem] border p-10">
-              {targetUser ? (
-                <div className="animate-fadeIn">
-                  <h2 className="text-4xl font-black mb-8">{targetUser.username}</h2>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="p-6 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                      <p className="text-xs font-black text-slate-400 mb-4 uppercase">账户金币</p>
-                      <div className="flex gap-2">
-                        <input id="coinInput" type="number" className="flex-1 p-3 rounded-xl border-none font-bold" placeholder="数量" />
-                        <button onClick={async () => {
-                          const val = (document.getElementById('coinInput') as HTMLInputElement).value;
-                          const { error } = await supabase.from('profiles').update({ coins: targetUser.coins + parseInt(val) }).eq('id', targetUser.id);
-                          if(!error) { setTargetUser({...targetUser, coins: targetUser.coins + parseInt(val)}); alert('修改成功'); }
-                        }} className="px-6 bg-slate-900 text-white rounded-xl font-bold">充值</button>
-                      </div>
+          </div>
+          
+          {/* 批量操作按钮 */}
+          <div className="flex gap-3 mt-4">
+            <button 
+              onClick={toggleSelectAll}
+              className="px-4 py-2 bg-slate-100 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-200"
+            >
+              {selectedVideos.length > 0 ? '取消全选' : '全选'} ({selectedVideos.length})
+            </button>
+            <button 
+              onClick={() => batchAudit('approved')}
+              className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700"
+              disabled={selectedVideos.length === 0}
+            >
+              批量批准
+            </button>
+            <button 
+              onClick={() => batchAudit('rejected')}
+              className="px-4 py-2 bg-amber-600 text-white rounded-xl text-sm font-bold hover:bg-amber-700"
+              disabled={selectedVideos.length === 0}
+            >
+              批量拒绝
+            </button>
+            <button 
+              onClick={batchDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700"
+              disabled={selectedVideos.length === 0}
+            >
+              <Trash2 size={16} className="inline mr-1" /> 批量删除
+            </button>
+          </div>
+        </div>
+
+        {/* 添加新视频表单 */}
+        <div className="bg-white rounded-3xl p-5 mb-6 shadow-sm border">
+          <h3 className="font-bold text-slate-800 mb-4">添加新视频</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              className="p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+              placeholder="视频标题"
+              value={newVideo.title}
+              onChange={e => setNewVideo({...newVideo, title: e.target.value})}
+            />
+            <input
+              className="p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+              placeholder="视频链接"
+              value={newVideo.video_url}
+              onChange={e => setNewVideo({...newVideo, video_url: e.target.value})}
+            />
+            <input
+              className="p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+              placeholder="缩略图链接（可选）"
+              value={newVideo.thumbnail_url}
+              onChange={e => setNewVideo({...newVideo, thumbnail_url: e.target.value})}
+            />
+          </div>
+          <button 
+            onClick={addNewVideo}
+            className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700"
+          >
+            <Plus size={16} className="inline mr-1" /> 添加视频
+          </button>
+        </div>
+
+        {/* 视频列表 */}
+        {loading ? (
+          <div className="py-20 text-center text-slate-400">加载中...</div>
+        ) : filteredVideos.length === 0 ? (
+          <div className="py-20 text-center text-slate-400">
+            <AlertCircle size={24} className="mx-auto mb-2" />
+            暂无视频数据
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredVideos.map(video => (
+              <div 
+                key={video.id} 
+                className={`bg-white rounded-3xl overflow-hidden border shadow-sm hover:shadow-xl transition-all ${
+                  video.status === 'pending' ? 'border-amber-200 bg-amber-50' : 
+                  video.status === 'approved' ? 'border-green-200 bg-green-50' : 
+                  'border-red-200 bg-red-50'
+                }`}
+              >
+                {/* 选择框 */}
+                <div className="absolute top-4 left-4 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedVideos.includes(video.id)}
+                    onChange={() => toggleVideoSelection(video.id)}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* 视频缩略图 */}
+                <div className="relative aspect-video bg-slate-900">
+                  <img 
+                    src={video.thumbnail_url || 'https://via.placeholder.com/400x225?text=No+Thumbnail'} 
+                    className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity" 
+                    alt={video.title}
+                  />
+                  <a 
+                    href={video.video_url} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                  >
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-xl">
+                      <Play size={24} fill="currentColor"/>
                     </div>
+                  </a>
+                  
+                  {/* 状态标签 */}
+                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-black">
+                    {video.status === 'pending' ? (
+                      <span className="bg-amber-500 text-white">待审核</span>
+                    ) : video.status === 'approved' ? (
+                      <span className="bg-green-500 text-white">已通过</span>
+                    ) : (
+                      <span className="bg-red-500 text-white">已拒绝</span>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-200 uppercase font-black tracking-widest">请选择一名用户</div>
-              )}
-            </div>
+
+                {/* 视频信息和操作 */}
+                <div className="p-5">
+                  <h3 className="font-black text-slate-800 truncate mb-1">{video.title || '未命名视频'}</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">
+                    作者: {video.author?.username || '匿名'}
+                  </p>
+                  
+                  {/* 单个视频操作 */}
+                  <div className="flex gap-2 mt-2">
+                    {video.status === 'pending' && (
+                      <>
+                        <button 
+                          onClick={() => auditVideo(video.id, 'approved')}
+                          className="flex-1 py-2 bg-green-600 text-white rounded-xl text-xs font-black hover:bg-green-700"
+                        >
+                          <Check size={14} className="inline mr-1" /> 批准
+                        </button>
+                        <button 
+                          onClick={() => auditVideo(video.id, 'rejected')}
+                          className="flex-1 py-2 bg-red-600 text-white rounded-xl text-xs font-black hover:bg-red-700"
+                        >
+                          <X size={14} className="inline mr-1" /> 拒绝
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* 编辑按钮 */}
+                    <button 
+                      onClick={() => setEditingVideo(video)}
+                      className="py-2 px-3 bg-slate-100 text-slate-700 rounded-xl text-xs font-black hover:bg-slate-200"
+                    >
+                      编辑
+                    </button>
+                    
+                    {/* 删除按钮 */}
+                    <button 
+                      onClick={async () => {
+                        if (confirm('确定删除该视频？')) {
+                          await supabase.from('videos').delete().eq('id', video.id);
+                          loadAllVideos();
+                        }
+                      }}
+                      className="py-2 px-3 bg-slate-100 text-red-600 rounded-xl text-xs font-black hover:bg-slate-200"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* 模块：视频审计页面 */}
-        {mainTab === 'video_audit' && <VideoAuditSubPage onBack={() => setMainTab('content')} />}
-
-        {/* 模块：内容监控 */}
-        {mainTab === 'content' && (
-          <div className="bg-white rounded-[2rem] border p-8 animate-fadeIn">
-            <div className="flex justify-between items-center mb-8">
-               <h2 className="text-2xl font-black">谷子小说内容监控</h2>
-               <div className="flex bg-slate-100 p-1 rounded-xl">
-                 {(['questions', 'answers', 'novels'] as const).map(t => (
-                   <button key={t} onClick={() => setContentTab(t)} className={`px-6 py-2 rounded-lg text-xs font-black transition-all ${contentTab === t ? 'bg-white shadow text-blue-600' : 'text-slate-400'}`}>
-                     {t === 'questions' ? '问答' : t === 'answers' ? '评论' : '小说'}
-                   </button>
-                 ))}
-               </div>
-            </div>
-            <div className="overflow-hidden border rounded-2xl">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 font-black text-slate-400 uppercase text-[10px]">
-                  <tr>
-                    <th className="px-6 py-4">内容内容</th>
-                    <th className="px-6 py-4">作者</th>
-                    <th className="px-6 py-4 text-center">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {contentData.map(item => (
-                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-bold text-slate-700 truncate max-w-md">{item.title || item.content}</td>
-                      <td className="px-6 py-4 font-black text-slate-500">{item.author?.username || '系统'}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button onClick={async () => {
-                          if(confirm('确定抹除此内容？')) {
-                            await supabase.from(contentTab).delete().eq('id', item.id);
-                            loadMainData();
-                          }
-                        }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* 编辑视频弹窗（简化为固定层） */}
+        {editingVideo && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-6 w-full max-w-lg">
+              <h3 className="font-bold text-xl mb-4">编辑视频</h3>
+              <div className="space-y-4">
+                <input
+                  className="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+                  placeholder="视频标题"
+                  value={editingVideo.title}
+                  onChange={e => setEditingVideo({...editingVideo, title: e.target.value})}
+                />
+                <input
+                  className="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+                  placeholder="视频链接"
+                  value={editingVideo.video_url}
+                  onChange={e => setEditingVideo({...editingVideo, video_url: e.target.value})}
+                />
+                <input
+                  className="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+                  placeholder="缩略图链接"
+                  value={editingVideo.thumbnail_url}
+                  onChange={e => setEditingVideo({...editingVideo, thumbnail_url: e.target.value})}
+                />
+                <select
+                  className="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold"
+                  value={editingVideo.status}
+                  onChange={e => setEditingVideo({...editingVideo, status: e.target.value as any})}
+                >
+                  <option value="pending">待审核</option>
+                  <option value="approved">已通过</option>
+                  <option value="rejected">已拒绝</option>
+                </select>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button 
+                  onClick={() => setEditingVideo(null)}
+                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={saveEditedVideo}
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700"
+                >
+                  <Save size={16} className="inline mr-1" /> 保存修改
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -309,4 +500,4 @@ const SecretManager = () => {
   );
 };
 
-export default SecretManager;
+export default SimpleVideoManager;
