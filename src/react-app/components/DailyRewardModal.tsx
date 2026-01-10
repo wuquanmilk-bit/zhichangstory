@@ -47,7 +47,7 @@ export default function DailyRewardModal() {
         setTimeout(() => {
           setShow(true);
           localStorage.setItem(`daily_reward_lock_${user.id}`, today);
-        }, 1500);
+        }, 800); // 缩短弹窗显示延迟
       } else {
         // 今天已经领取过了，更新本地缓存
         localStorage.setItem(`daily_reward_lock_${user.id}`, today);
@@ -77,7 +77,7 @@ export default function DailyRewardModal() {
         throw new Error('今天已经领取过奖励了');
       }
       
-      // 获取当前谷子币
+      // 获取当前积分
       const currentCoins = checkData?.coins || 0;
       const newCoins = currentCoins + 50;
       
@@ -132,11 +132,11 @@ export default function DailyRewardModal() {
       // 更新本地缓存
       localStorage.setItem(`daily_reward_lock_${user.id}`, today);
       
-      // 3秒后关闭并刷新
+      // 缩短关闭延迟
       setTimeout(() => {
         setShow(false);
         window.location.reload();
-      }, 3000);
+      }, 1500);
       
     } catch (err) {
       console.error('领取奖励失败:', err);
@@ -144,7 +144,7 @@ export default function DailyRewardModal() {
       
       setTimeout(() => {
         setShow(false);
-      }, 3000);
+      }, 1500);
     } finally {
       setClaiming(false);
     }
@@ -153,72 +153,71 @@ export default function DailyRewardModal() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative w-full max-w-sm bg-gradient-to-b from-red-500 to-red-600 rounded-[3rem] p-8 shadow-2xl text-center animate-in zoom-in duration-500">
-        {/* 已移除调试信息 */}
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+      {/* 缩小弹窗尺寸，优化移动端适配 */}
+      <div className="relative w-full max-w-[280px] bg-gradient-to-b from-red-500 to-red-600 rounded-[2rem] p-6 shadow-2xl text-center animate-in zoom-in duration-200">
+        <Sparkles className="absolute top-6 left-6 text-yellow-300 animate-pulse" size={16} />
+        <Sparkles className="absolute top-6 right-6 text-yellow-300 animate-pulse" size={16} />
         
-        <Sparkles className="absolute top-10 left-10 text-yellow-300 animate-pulse" />
-        <Sparkles className="absolute top-10 right-10 text-yellow-300 animate-pulse" />
-        
-        <div className="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
           {isSuccess ? (
-            <CheckCircle2 className="h-10 w-10 text-yellow-300 animate-bounce" />
+            <CheckCircle2 className="h-8 w-8 text-yellow-300 animate-bounce" />
           ) : claiming ? (
-            <Loader2 className="h-10 w-10 text-white animate-spin" />
+            <Loader2 className="h-8 w-8 text-white animate-spin" />
           ) : (
-            <Gift className="h-10 w-10 text-white animate-bounce" />
+            <Gift className="h-8 w-8 text-white animate-bounce" />
           )}
         </div>
 
-        <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
+        <h2 className="text-xl font-black text-white mb-1 tracking-tight">
           {isSuccess ? "领取成功！" : errorMsg ? "领取失败" : "每日登录奖励"}
         </h2>
         
-        <p className="text-red-100 font-bold text-sm mb-8">
-          {isSuccess ? "谷子币已存入账户" : 
+        <p className="text-red-100 font-bold text-xs mb-4">
+          {isSuccess ? "积分已存入账户" : 
            errorMsg ? "请稍后再试" : "开启今天的好运"}
         </p>
 
-        <div className="bg-white rounded-[2rem] p-6 mb-6 shadow-xl relative min-h-[160px] flex flex-col justify-center">
+        <div className="bg-white rounded-[1.5rem] p-4 mb-4 shadow-xl relative min-h-[140px] flex flex-col justify-center">
           {claiming ? (
-            <div className="py-4 flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 text-red-500 animate-spin" />
+            <div className="py-2 flex flex-col items-center gap-1">
+              <Loader2 className="h-6 w-6 text-red-500 animate-spin" />
               <span className="font-black text-red-500 text-xs">正在发放奖励...</span>
             </div>
           ) : isSuccess ? (
-            <div className="py-4 flex flex-col items-center animate-in zoom-in">
-              <div className="flex items-baseline gap-1 text-green-600 mb-2">
-                <span className="text-5xl font-black">+50</span>
-                <span className="text-sm font-bold">谷子币</span>
+            <div className="py-2 flex flex-col items-center animate-in zoom-in duration-150">
+              <div className="flex items-baseline gap-1 text-green-600 mb-1">
+                <span className="text-4xl font-black">+50</span>
+                <span className="text-xs font-bold">积分</span>
               </div>
               <p className="text-gray-400 text-xs font-bold">页面即将自动刷新...</p>
             </div>
           ) : errorMsg ? (
-            <div className="py-4 flex flex-col items-center gap-2">
-              <AlertCircle className="h-12 w-12 text-red-400" />
-              <p className="text-red-500 font-semibold">领取失败</p>
-              <p className="text-gray-500 text-sm mt-2">{errorMsg}</p>
+            <div className="py-2 flex flex-col items-center gap-1">
+              <AlertCircle className="h-10 w-10 text-red-400" />
+              <p className="text-red-500 font-semibold text-sm">领取失败</p>
+              <p className="text-gray-500 text-xs mt-1">{errorMsg}</p>
               <button 
                 onClick={() => setShow(false)}
-                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 transition-colors"
+                className="mt-3 px-4 py-1.5 bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 transition-colors text-xs"
               >
                 关闭
               </button>
             </div>
           ) : (
             <>
-              <div className="flex flex-col items-center mb-4">
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-5xl font-black text-red-600">50</span>
-                  <span className="text-lg font-black text-red-400">谷子币</span>
+              <div className="flex flex-col items-center mb-3">
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-black text-red-600">50</span>
+                  <span className="text-base font-black text-red-400">积分</span>
                 </div>
-                <p className="text-gray-500 text-sm">每天登录即可领取</p>
+                <p className="text-gray-500 text-xs">每天登录即可领取</p>
               </div>
               
               <button 
                 onClick={handleClaim} 
                 disabled={claiming}
-                className="w-full py-4 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-black rounded-2xl shadow-[0_8px_0_0_#d97706] active:shadow-[0_2px_0_0_#d97706] active:translate-y-1 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-black rounded-2xl shadow-[0_4px_0_0_#d97706] active:shadow-[0_1px_0_0_#d97706] active:translate-y-1 transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 立即领取
               </button>
@@ -229,7 +228,7 @@ export default function DailyRewardModal() {
         {!isSuccess && !errorMsg && (
           <button 
             onClick={() => setShow(false)} 
-            className="text-red-100 text-xs font-bold hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/10"
+            className="text-red-100 text-xs font-bold hover:text-white transition-colors px-3 py-1 rounded-full hover:bg-white/10"
           >
             下次再说
           </button>
