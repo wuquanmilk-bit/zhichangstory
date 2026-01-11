@@ -166,7 +166,7 @@ const SecretManager = () => {
         .from(TABLE.USERS)
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100); // 限制100条防止卡顿
+        .limit(10000); // 限制100条防止卡顿
 
       // 搜索逻辑：匹配 username, email 或 nickname
       if (searchKeyword) {
@@ -430,7 +430,7 @@ const SecretManager = () => {
         .from(contentTab) // questions, answers, novels
         .select(`*, author:user_id(username, email)`) 
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(5000);
       
       if (error) throw error;
       setAllContentData(data || []);
@@ -438,7 +438,7 @@ const SecretManager = () => {
       setSelectAll(false);
     } catch (error) {
       console.error('加载内容失败，尝试无关联加载:', error);
-      const { data } = await supabase.from(contentTab).select('*').limit(500000);
+      const { data } = await supabase.from(contentTab).select('*').limit(5000);
       setAllContentData(data || []);
     } finally {
       setAllContentLoading(false);
@@ -617,7 +617,7 @@ const handleMouseUp = () => {
   if (!targetUser) return alert('请先选择用户！');
   setLoading(true);
   try {
-    const { data: qList } = await supabase.from(TABLE.QUESTIONS).select('id, title').limit(20);
+    const { data: qList } = await supabase.from(TABLE.QUESTIONS).select('id, title').limit(200);
     if (!qList?.length) throw new Error('没有可评论的问题');
 
     const count = toolMode === 'custom' ? 1 : batchCount;
