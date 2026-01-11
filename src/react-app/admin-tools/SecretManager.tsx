@@ -1110,7 +1110,7 @@ const handleMouseUp = () => {
                 
                 {contentTab === 'answers' && (
                   <>
-                    <td className="p-2 truncate max-w-xs text-blue-600">{item.question?.title || '已删除的问题'}</td>
+                    <td className="p-2 truncate max-w-xs text-blue-600">{item.question?.title || '已发布的评论'}</td>
                     <td className="p-2 truncate max-w-md text-gray-500">{item.content?.substring(0, 50)}...</td>
                     <td className="p-2 text-gray-500">{item.author?.username || '未知用户'}</td>
                     <td className="p-2 text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</td>
