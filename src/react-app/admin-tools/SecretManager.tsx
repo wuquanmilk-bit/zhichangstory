@@ -438,7 +438,7 @@ const SecretManager = () => {
       setSelectAll(false);
     } catch (error) {
       console.error('加载内容失败，尝试无关联加载:', error);
-      const { data } = await supabase.from(contentTab).select('*').limit(50);
+      const { data } = await supabase.from(contentTab).select('*').limit(500000);
       setAllContentData(data || []);
     } finally {
       setAllContentLoading(false);
